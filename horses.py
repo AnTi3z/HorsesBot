@@ -2,9 +2,11 @@
 
 import time
 import telebot
+from telebot import types
 import logging
 import requests
 import random
+import threading
 
 
 TOKEN = '374411418:AAFLZOyh7eNisH0cYut1uwKry-af7t6At8I'
@@ -16,7 +18,7 @@ TRACKS_NUM = 8
 #logging.basicConfig(level = logging.DEBUG)
 
 
-bot = telebot.TeleBot(TOKEN,threaded=False)
+bot = telebot.TeleBot(TOKEN, threaded=False)
 me = bot.get_me()
 #horses = []
 #winners = []
@@ -26,12 +28,25 @@ animals = ['🐆','🐅','🐃','🐂','🐄','🦌','🐪','🐫','🐘','🦏'
 
 @bot.message_handler(func=lambda msg: True, commands=['start'])
 def on_start(msg):
-    while 1:
         msg_id = init_race()
-        time.sleep(60)
+        time.sleep(30)
         go_race(msg_id)
         finish_race()
-        time.sleep(600)
+        show_start_btn()
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback_inline(call):
+    if call.data == "call_start":
+        bot.delete_message(call.message.chat.id, call.message.message_id)
+        on_start(None)
+
+
+def show_start_btn():
+    markup = types.InlineKeyboardMarkup(row_width=2)
+    start_btn = types.InlineKeyboardButton('СТАРТ!', callback_data='call_start')
+    markup.add(start_btn)
+    bot.send_message(CHANNEL_ID, 'Начать новый забег?', reply_markup=markup)
 
 
 def init_race():
@@ -46,9 +61,9 @@ def init_race():
 def go_race(msg_id):
     while len(winners) < 3:
         random_move_horses()
-        bot.edit_message_text('Идет забег!!!\n\n' + get_formated_text(), chat_id=CHANNEL_ID, message_id=msg_id, parse_mode='Markdown')
-        #bot.send_message(CHANNEL_ID, get_formated_text(), parse_mode='Markdown')
-        time.sleep(1)
+        bot.edit_message_text('Идет забег!!!\n\n' + get_formated_text(), chat_id=CHANNEL_ID, message_id=msg_id,
+                              parse_mode='Markdown')
+        time.sleep(1.5)
     bot.edit_message_text('Забег завершен.\n\n' + get_formated_text(), chat_id=CHANNEL_ID, message_id=msg_id,
                           parse_mode='Markdown')
 
@@ -97,7 +112,7 @@ if __name__ == '__main__':
     while 1:
         try:
             logging.info("start polling")
-            bot.polling(none_stop=True, interval=1)
+            bot.polling(none_stop=True)
         except requests.exceptions.ReadTimeout as e:
             logging.exception('ReadTimeout')
             print(e)
