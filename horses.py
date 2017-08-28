@@ -24,22 +24,24 @@ me = bot.get_me()
 #winners = []
 #animals = ['🐒','🦆','🐓','🐿','🐑','🐖','🐀','🦍','🐐']
 animals = ['🐆','🐅','🐃','🐂','🐄','🦌','🐪','🐫','🐘','🦏','🦍','🐎','🐖','🐐','🐏','🐑','🐕','🐩','🐈','🐓','🦃','🕊','🐇','🐁','🐀','🐿','🐢','🐜','🐍','🦂','🦀']
-
+horses = []
+winners = []
+bets = {}
 
 @bot.message_handler(func=lambda msg: True, commands=['start'])
 def on_start(msg):
-        msg_id = init_race()
-        time.sleep(30)
-        go_race(msg_id)
-        finish_race()
-        show_start_btn()
+    show_start_btn()
 
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
-    if call.data == "call_start":
-        bot.delete_message(call.message.chat.id, call.message.message_id)
-        on_start(None)
+    global bets
+    if call.data == 'call_start':
+        init_race(call.message.message_id)
+        threading.Thread(target=do_race, args=(call.message.message_id,)).start()
+    elif 'call_bet_' in call.data:
+        bets[call.from_user.first_name] = int(call.data[9:])
+        print(bets)
 
 
 def show_start_btn():
@@ -49,31 +51,65 @@ def show_start_btn():
     bot.send_message(CHANNEL_ID, 'Начать новый забег?', reply_markup=markup)
 
 
-def init_race():
-    global horses, winners
-    horses = TRACKS_NUM * [0]
-    winners = []
-    random.shuffle(animals)
-    msg = bot.send_message(CHANNEL_ID, 'Новый забег вот-вот начнется!\n\n' + get_formated_text(), parse_mode='Markdown')
+def show_bets_panel():
+    markup = types.InlineKeyboardMarkup(row_width=4)
+    btns = []
+    for num in range(TRACKS_NUM):
+        btns.append(types.InlineKeyboardButton(str(num+1) + ' - ' + animals[num], callback_data='call_bet_'+str(num)))
+    markup.row(btns[0], btns[1], btns[2], btns[3])
+    markup.row(btns[4], btns[5], btns[6], btns[7])
+    msg = bot.send_message(CHANNEL_ID, 'Выбирайте на кого ставить:', reply_markup=markup)
     return msg.message_id
 
 
-def go_race(msg_id):
+def do_race(main_msg_id):
+    bets_panel_msg_id = show_bets_panel()
+    time.sleep(30)
+    bot.delete_message(CHANNEL_ID, bets_panel_msg_id)
+    run_race(main_msg_id)
+    finish_race(main_msg_id)
+    show_start_btn()
+
+
+def init_race(msg_id):
+    global horses, winners, bets
+    horses = TRACKS_NUM * [0]
+    winners = []
+    bets = {}
+    random.shuffle(animals)
+    bot.edit_message_text('Новый забег вот-вот начнется!\n\n' + get_formated_text(), chat_id=CHANNEL_ID, message_id=msg_id,
+                          parse_mode='Markdown')
+
+
+def run_race(msg_id):
     while len(winners) < 3:
         random_move_horses()
         bot.edit_message_text('Идет забег!!!\n\n' + get_formated_text(), chat_id=CHANNEL_ID, message_id=msg_id,
                               parse_mode='Markdown')
         time.sleep(1.5)
+
+
+def finish_race(msg_id):
     bot.edit_message_text('Забег завершен.\n\n' + get_formated_text(), chat_id=CHANNEL_ID, message_id=msg_id,
                           parse_mode='Markdown')
 
+    won_bets = [[],[],[]]
 
-def finish_race():
+    for bet in bets.items():
+        if bet[1] == winners[0]:
+            won_bets[0].append(bet[0])
+        elif bet[1] == winners[1]:
+            won_bets[1].append(bet[0])
+        elif bet[1] == winners[2]:
+            won_bets[2].append(bet[0])
+
     result_text = '''*Победители забега:*
     
-    `🥇 - {}`
-    `🥈 - {}`
-    `🥉 - {}`'''.format(animals[winners[0]], animals[winners[1]], animals[winners[2]])
+    `🥇 - {}` ({})
+    `🥈 - {}` ({})
+    `🥉 - {}` ({})'''.format(animals[winners[0]], won_bets[0],
+                            animals[winners[1]], won_bets[1],
+                            animals[winners[2]], won_bets[2])
     bot.send_message(CHANNEL_ID, result_text, parse_mode='Markdown')
 
 
@@ -109,6 +145,7 @@ def random_move_horses():
 
 
 if __name__ == '__main__':
+    show_start_btn()
     while 1:
         try:
             logging.info("start polling")
