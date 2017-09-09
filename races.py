@@ -20,7 +20,7 @@ me = bot.get_me()
 #winners = []
 #animals = ['🐒','🦆','🐓','🐿','🐑','🐖','🐀','🦍','🐐']
 animals = ['🐆','🐅','🐃','🐂','🐄','🦌','🐪','🐫','🐘','🦏','🦍','🐎','🐖','🐐','🐏','🐑','🐕','🐩','🐈','🐓','🦃','🕊','🐇','🐁','🐀','🐿','🐢','🐜','🐍','🦂','🦀']
-horses = []
+racers_position = []
 winners = []
 bets = {}
 
@@ -68,8 +68,8 @@ def do_race(main_msg_id):
 
 
 def init_race(msg_id):
-    global horses, winners, bets
-    horses = TRACKS_NUM * [0]
+    global racers_position, winners, bets
+    racers_position = TRACKS_NUM * [0]
     winners = []
     bets = {}
     random.shuffle(animals)
@@ -79,7 +79,7 @@ def init_race(msg_id):
 
 def run_race(msg_id):
     while len(winners) < 3:
-        random_move_horses()
+        random_move_racers()
         bot.edit_message_text('Идет забег!!!\n\n' + get_formated_text(), chat_id=CHANNEL_ID, message_id=msg_id,
                               parse_mode='Markdown')
         time.sleep(1.5)
@@ -111,32 +111,32 @@ def finish_race(msg_id):
 
 def get_formated_text():
     result_text = []
-    for horse_num in range(len(horses)):
-        if horses[horse_num] < 18:
-            horse_row = '`🏁{}{}{}|{}️⃣`'.format('-'*(18-horses[horse_num]),
-                                                           animals[horse_num], '-'*horses[horse_num],horse_num+1)
+    for racer_num in range(TRACKS_NUM):
+        if racers_position[racer_num] < RACE_LEN:
+            racer_row = '`🏁{}{}{}|{}️⃣`'.format('-' * (RACE_LEN - racers_position[racer_num]),
+                                                 animals[racer_num], '-' * racers_position[racer_num], racer_num + 1)
         else:
-            if horse_num == winners[0]: prize = '🏆'
-            elif horse_num == winners[1]: prize = '🥈'
-            elif horse_num == winners[2]: prize = '🥉'
+            if racer_num == winners[0]: prize = '🏆'
+            elif racer_num == winners[1]: prize = '🥈'
+            elif racer_num == winners[2]: prize = '🥉'
             else: prize = '🏁'
-            horse_row = '`{}{}------------------|{}️⃣`'.format(prize, animals[horse_num], horse_num + 1)
-        result_text.append(horse_row)
+            racer_row = '`{}{}------------------|{}️⃣`'.format(prize, animals[racer_num], racer_num + 1)
+        result_text.append(racer_row)
 
     return '\n'.join(result_text)
 
 
-def random_move_horses():
-    global horses
-    rnd_num = [x for x in range(len(horses))]
-    random.shuffle(rnd_num)
-    for horse_num in rnd_num:
+def random_move_racers():
+    global racers_position
+    rnd_num = random.sample(range(TRACKS_NUM), TRACKS_NUM)
+    # random.shuffle(rnd_num)
+    for racer_num in rnd_num:
         rnd = random.randint(0, 100)
         if rnd < 20: rnd = 0
         elif rnd < 50: rnd = 2
         else: rnd = 1
-        horses[horse_num] = horses[horse_num] + rnd
-        if horses[horse_num] >= 18 and not horse_num in winners: winners.append(horse_num)
+        racers_position[racer_num] = racers_position[racer_num] + rnd
+        if racers_position[racer_num] >= RACE_LEN and not racer_num in winners: winners.append(racer_num)
         if len(winners) >= 3: break
 
 
