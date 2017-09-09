@@ -1,0 +1,5 @@
+TOKEN = '374411418:AAFLZOyh7eNisH0cYut1uwKry-af7t6At8I'
+#CHANNEL_ID =  -1001141707367 #Animal races channel
+CHANNEL_ID = -1001128050160 #testing group
+TRACKS_NUM = 8
+RACE_LEN = 18
