@@ -10,8 +10,17 @@ import threading
 from config import *
 
 
+logger = logging.getLogger('AnimalRaces')
 
-#logging.basicConfig(level = logging.DEBUG)
+
+class BotHandler(logging.Handler):
+    def __init__(self, bot):
+        logging.Handler.__init__(self)
+        self.bot_obj = bot
+
+    def emit(self, record):
+        msg = self.format(record)
+        bot.send_message(OWNER_ID, msg, parse_mode='Markdown')
 
 
 bot = telebot.TeleBot(TOKEN, threaded=False)
@@ -31,10 +40,11 @@ def callback_inline(call):
     global bets
     if call.data == 'call_start':
         init_race(call.message.message_id)
+        logger.debug(call.message)
         threading.Thread(target=do_race, args=(call.message.message_id,)).start()
     elif 'call_bet_' in call.data:
         bets[call.from_user.first_name] = int(call.data[9:])
-        print(bets)
+        logger.debug(bets)
 
 
 def show_start_btn():
@@ -140,7 +150,31 @@ def random_move_racers():
         if len(winners) >= 3: break
 
 
+def logger_init():
+    # logging.basicConfig(level=logging.DEBUG)
+
+    # Console logging
+    console_formatter = logging.Formatter(
+        '%(asctime)s (%(filename)s:%(lineno)d %(funcName)s) %(levelname)s - %(name)s: "%(message)s"'
+    )
+    console_output_handler = logging.StreamHandler()
+    console_output_handler.setFormatter(console_formatter)
+    console_output_handler.setLevel(logging.DEBUG)
+    logger.addHandler(console_output_handler)
+
+    # Logging via telegram
+    bot_formatter = logging.Formatter('%(message)s')
+    bot_output_handler = BotHandler(bot)
+    bot_output_handler.setFormatter(bot_formatter)
+    bot_output_handler.setLevel(logging.INFO)
+    logger.addHandler(bot_output_handler)
+
+    logger.setLevel(logging.DEBUG)
+
+
 if __name__ == '__main__':
+    logger_init()
+    logger.info("Animal races bot started")
     show_start_btn()
     while 1:
         try:
