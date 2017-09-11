@@ -29,6 +29,8 @@ animals = ('🐆','🐅','🐃','🐂','🐄','🦌','🐪','🐫','🐘','🦏'
 racers = []
 winners = []
 bets = {}
+start_btn_clicked = False
+
 
 @bot.message_handler(func=lambda msg: True, commands=['start'])
 def on_start(msg):
@@ -37,8 +39,9 @@ def on_start(msg):
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
-    global bets
-    if call.data == 'call_start':
+    global bets, start_btn_clicked
+    if call.data == 'call_start' and not start_btn_clicked:
+        start_btn_clicked = True
         init_race(call.message.message_id)
         logger.debug(call.message)
         threading.Thread(target=do_race, args=(call.message.message_id,)).start()
@@ -48,10 +51,12 @@ def callback_inline(call):
 
 
 def show_start_btn():
+    global start_btn_clicked
     markup = types.InlineKeyboardMarkup(row_width=2)
     start_btn = types.InlineKeyboardButton('СТАРТ!', callback_data='call_start')
     markup.add(start_btn)
     bot.send_message(CHANNEL_ID, 'Начать новый забег?', reply_markup=markup)
+    start_btn_clicked = False
 
 
 def show_bets_panel():
