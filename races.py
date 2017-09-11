@@ -16,11 +16,8 @@ from config import *
 
 bot = telebot.TeleBot(TOKEN, threaded=False)
 me = bot.get_me()
-#horses = []
-#winners = []
-#animals = ['🐒','🦆','🐓','🐿','🐑','🐖','🐀','🦍','🐐']
-animals = ['🐆','🐅','🐃','🐂','🐄','🦌','🐪','🐫','🐘','🦏','🦍','🐎','🐖','🐐','🐏','🐑','🐕','🐩','🐈','🐓','🦃','🕊','🐇','🐁','🐀','🐿','🐢','🐜','🐍','🦂','🦀']
-racers_position = []
+animals = ('🐆','🐅','🐃','🐂','🐄','🦌','🐪','🐫','🐘','🦏','🦍','🐎','🐖','🐐','🐏','🐑','🐕','🐩','🐈','🐓','🦃','🕊','🐇','🐁','🐀','🐿','🐢','🐜','🐍','🦂','🦀')
+racers = []
 winners = []
 bets = {}
 
@@ -68,11 +65,14 @@ def do_race(main_msg_id):
 
 
 def init_race(msg_id):
-    global racers_position, winners, bets
-    racers_position = TRACKS_NUM * [0]
+    global winners, bets, racers
+    racers = []
+    rnd_animals_indx = random.sample(range(len(animals)), TRACKS_NUM)
+    for i in range(TRACKS_NUM):
+       racer = {'animal' : animals[rnd_animals_indx[i]], 'position' : 0}
+       racers.append(racer)
     winners = []
     bets = {}
-    random.shuffle(animals)
     bot.edit_message_text('Новый забег вот-вот начнется!\n\n' + get_formated_text(), chat_id=CHANNEL_ID, message_id=msg_id,
                           parse_mode='Markdown')
 
@@ -103,40 +103,40 @@ def finish_race(msg_id):
     
     `🥇 - {}` ({})
     `🥈 - {}` ({})
-    `🥉 - {}` ({})'''.format(animals[winners[0]], won_bets[0],
-                            animals[winners[1]], won_bets[1],
-                            animals[winners[2]], won_bets[2])
+    `🥉 - {}` ({})'''.format(racers[winners[0]]['animal'], won_bets[0],
+                            racers[winners[1]]['animal'], won_bets[1],
+                            racers[winners[2]]['animal'], won_bets[2])
     bot.send_message(CHANNEL_ID, result_text, parse_mode='Markdown')
 
 
 def get_formated_text():
     result_text = []
     for racer_num in range(TRACKS_NUM):
-        if racers_position[racer_num] < RACE_LEN:
-            racer_row = '`🏁{}{}{}|{}️⃣`'.format('-' * (RACE_LEN - racers_position[racer_num]),
-                                                 animals[racer_num], '-' * racers_position[racer_num], racer_num + 1)
+        position = racers[racer_num]['position']
+        animal = racers[racer_num]['animal']
+        if position < RACE_LEN:
+            racer_row = '`🏁{}{}{}|{}️⃣`'.format('-' * (RACE_LEN - position), animal, '-' * position, racer_num + 1)
         else:
             if racer_num == winners[0]: prize = '🏆'
             elif racer_num == winners[1]: prize = '🥈'
             elif racer_num == winners[2]: prize = '🥉'
             else: prize = '🏁'
-            racer_row = '`{}{}------------------|{}️⃣`'.format(prize, animals[racer_num], racer_num + 1)
+            racer_row = '`{}{}------------------|{}️⃣`'.format(prize, animal, racer_num + 1)
         result_text.append(racer_row)
 
     return '\n'.join(result_text)
 
 
 def random_move_racers():
-    global racers_position
+    global racers
     rnd_num = random.sample(range(TRACKS_NUM), TRACKS_NUM)
-    # random.shuffle(rnd_num)
     for racer_num in rnd_num:
         rnd = random.randint(0, 100)
         if rnd < 20: rnd = 0
         elif rnd < 50: rnd = 2
         else: rnd = 1
-        racers_position[racer_num] = racers_position[racer_num] + rnd
-        if racers_position[racer_num] >= RACE_LEN and not racer_num in winners: winners.append(racer_num)
+        racers[racer_num]['position'] += rnd
+        if racers[racer_num]['position'] >= RACE_LEN and not racer_num in winners: winners.append(racer_num)
         if len(winners) >= 3: break
 
 
