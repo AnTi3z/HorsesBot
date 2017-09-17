@@ -136,7 +136,7 @@ def get_formated_text():
             elif racer_num == winners[1]: prize = '🥈'
             elif racer_num == winners[2]: prize = '🥉'
             else: prize = '🏁'
-            racer_row = '`{}{}------------------|{}️⃣`'.format(prize, animal, racer_num + 1)
+            racer_row = '`{}{}{}|{}️⃣`'.format(prize, animal, '-' * RACE_LEN, racer_num + 1)
         result_text.append(racer_row)
 
     return '\n'.join(result_text)
@@ -183,21 +183,21 @@ if __name__ == '__main__':
     show_start_btn()
     while 1:
         try:
-            logging.info("start polling")
+            logger.info("start polling")
             bot.polling(none_stop=True)
         except requests.exceptions.ReadTimeout as e:
-            logging.exception('ReadTimeout')
+            logger.exception('ReadTimeout')
             print(e)
             time.sleep(10)
         except requests.exceptions.ConnectionError as e:
-            logging.exception('ConnectionError')
+            logger.exception('ConnectionError')
             print(e)
             time.sleep(10)
         except KeyboardInterrupt as e:
             print('хуй')
-            logging.exception('Inetrrupted by user')
+            logger.exception('Inetrrupted by user')
             raise SystemExit(0)
         except Exception as e:
-            logging.exception('unexpected Exception')
+            logger.exception('unexpected Exception')
             print(e)
             time.sleep(10)
