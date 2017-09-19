@@ -63,7 +63,7 @@ def show_bets_panel():
     markup = types.InlineKeyboardMarkup(row_width=4)
     btns = []
     for num in range(TRACKS_NUM):
-        btns.append(types.InlineKeyboardButton(str(num+1) + ' - ' + animals[num], callback_data='call_bet_'+str(num)))
+        btns.append(types.InlineKeyboardButton(str(num+1) + ' - ' + racers[num]['animal'], callback_data='call_bet_'+str(num)))
     markup.row(btns[0], btns[1], btns[2], btns[3])
     markup.row(btns[4], btns[5], btns[6], btns[7])
     msg = bot.send_message(CHANNEL_ID, 'Выбирайте на кого ставить:', reply_markup=markup)
