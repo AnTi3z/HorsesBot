@@ -40,14 +40,15 @@ def on_start(msg):
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
     global bets, start_btn_clicked
+    logger.debug(call)
     if call.data == 'call_start' and not start_btn_clicked:
         start_btn_clicked = True
         init_race(call.message.message_id)
-        logger.debug(call.message)
+        logger.debug('Race init by {}'.format(call.from_user.first_name))
         threading.Thread(target=do_race, args=(call.message.message_id,)).start()
     elif 'call_bet_' in call.data:
         bets[call.from_user.first_name] = int(call.data[9:])
-        logger.debug(bets)
+        logger.debug('{} bets on {}'.format(call.from_user.first_name, call.data[9:]))
 
 
 def show_start_btn():
