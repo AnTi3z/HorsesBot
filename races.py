@@ -82,6 +82,8 @@ def do_race(main_msg_id):
 
 def init_race(msg_id):
     global winners, bets, racers
+    # race = db_wrap.new_race()
+    # animals = db_wrap.set_tracks(race, TRACKS_NUM)
     racers = []
     rnd_animals_indx = random.sample(range(len(animals)), TRACKS_NUM)
     for i in range(TRACKS_NUM):
