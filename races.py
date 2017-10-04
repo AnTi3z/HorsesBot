@@ -121,7 +121,7 @@ def finish_race(msg_id):
     # Обработка race.result
     medal = {1: '🥇', 2: '🥈', 3: '🥉'}
     for row in race.result:
-        result_list.append('\n{}{:<10.10}{:>5}💰({:>5}💰)'.format(medal[row['place']], row['first_name'],
+        result_list.append('\n{}`{:<10.10}{:>5}💰({:>5}💰)`'.format(medal[row['place']], row['first_name'],
                                                                 row['won'], row['money']))
 
     bot.send_message(CHANNEL_ID, ''.join(result_list), parse_mode='Markdown')
