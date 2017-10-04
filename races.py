@@ -5,8 +5,9 @@ import telebot
 from telebot import types
 import logging
 import requests
-import random
 import threading
+from db_wrap import update_user
+from race import Race
 from config import *
 
 
@@ -20,35 +21,47 @@ class BotHandler(logging.Handler):
 
     def emit(self, record):
         msg = self.format(record)
-        bot.send_message(OWNER_ID, msg, parse_mode='Markdown')
+        bot.send_message(OWNER_ID, msg)  # , parse_mode='Markdown')
 
 
 bot = telebot.TeleBot(TOKEN, threaded=False)
-me = bot.get_me()
-animals = ('🐆','🐅','🐃','🐂','🐄','🦌','🐪','🐫','🐘','🦏','🦍','🐎','🐖','🐐','🐏','🐑','🐕','🐩','🐈','🐓','🦃','🕊','🐇','🐁','🐀','🐿','🐢','🐜','🐍','🦂','🦀')
-racers = []
-winners = []
-bets = {}
+# me = bot.get_me()
 start_btn_clicked = False
+race = None
 
 
-@bot.message_handler(func=lambda msg: True, commands=['start'])
-def on_start(msg):
-    show_start_btn()
+#@bot.message_handler(func=lambda msg: True, commands=['start'])
+#def on_start(msg):
+#    show_start_btn()
+
+@bot.message_handler(func=lambda msg: msg.chat.id == CHANNEL_ID, content_types=['new_chat_members'])
+def on_user_joins(msg):
+    logger.debug('User joined support channel (id:%d)', msg.new_chat_member.id)
+    new_user = msg.new_chat_member
+    if update_user(new_user.id, new_user.username, new_user.first_name, new_user.last_name):
+        logger.info('New user added(join)')
+
+
+@bot.message_handler(func=lambda msg: True)
+def on_any_msg(msg):
+    new_user = msg.from_user
+    if update_user(new_user.id, new_user.username, new_user.first_name, new_user.last_name):
+        logger.info('New user added(msg)')
 
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
-    global bets, start_btn_clicked
-    logger.debug(call)
+    global start_btn_clicked
+    if update_user(call.from_user.id, call.from_user.username, call.from_user.first_name, call.from_user.last_name):
+        logger.info('New user added(button)')
     if call.data == 'call_start' and not start_btn_clicked:
         start_btn_clicked = True
         init_race(call.message.message_id)
         logger.debug('Race init by {}'.format(call.from_user.first_name))
         threading.Thread(target=do_race, args=(call.message.message_id,)).start()
     elif 'call_bet_' in call.data:
-        bets[call.from_user.first_name] = int(call.data[9:])
-        logger.debug('{} bets on {}'.format(call.from_user.first_name, call.data[9:]))
+        race.set_bet(call.from_user.id, int(call.data[9:])+1, 10)
+        logger.debug('{} bets on {}'.format(call.from_user.first_name, int(call.data[9:])+1))
 
 
 def show_start_btn():
@@ -63,8 +76,9 @@ def show_start_btn():
 def show_bets_panel():
     markup = types.InlineKeyboardMarkup(row_width=4)
     btns = []
-    for num in range(TRACKS_NUM):
-        btns.append(types.InlineKeyboardButton(str(num+1) + ' - ' + racers[num]['animal'], callback_data='call_bet_'+str(num)))
+    for num in range(race.tracks_cnt):
+        btns.append(types.InlineKeyboardButton(str(num+1) + ' - ' + race.racers[num]['animal'],
+                                               callback_data='call_bet_'+str(num)))
     markup.row(btns[0], btns[1], btns[2], btns[3])
     markup.row(btns[4], btns[5], btns[6], btns[7])
     msg = bot.send_message(CHANNEL_ID, 'Выбирайте на кого ставить:', reply_markup=markup)
@@ -81,81 +95,36 @@ def do_race(main_msg_id):
 
 
 def init_race(msg_id):
-    global winners, bets, racers
-    # race = db_wrap.new_race()
-    # animals = db_wrap.set_tracks(race, TRACKS_NUM)
-    racers = []
-    rnd_animals_indx = random.sample(range(len(animals)), TRACKS_NUM)
-    for i in range(TRACKS_NUM):
-       racer = {'animal' : animals[rnd_animals_indx[i]], 'position' : 0}
-       racers.append(racer)
-    winners = []
-    bets = {}
-    bot.edit_message_text('Новый забег вот-вот начнется!\n\n' + get_formated_text(), chat_id=CHANNEL_ID, message_id=msg_id,
-                          parse_mode='Markdown')
+    global race
+    race = Race()
+    bot.edit_message_text('Новый забег вот-вот начнется!\n\n' + race.formatted_tracks, chat_id=CHANNEL_ID,
+                          message_id=msg_id, parse_mode='Markdown')
 
 
 def run_race(msg_id):
-    while len(winners) < 3:
-        random_move_racers()
-        bot.edit_message_text('Идет забег!!!\n\n' + get_formated_text(), chat_id=CHANNEL_ID, message_id=msg_id,
+    while race.run():
+        bot.edit_message_text('Идет забег!!!\n\n' + race.formatted_tracks, chat_id=CHANNEL_ID, message_id=msg_id,
                               parse_mode='Markdown')
         time.sleep(1.5)
 
 
 def finish_race(msg_id):
-    bot.edit_message_text('Забег завершен.\n\n' + get_formated_text(), chat_id=CHANNEL_ID, message_id=msg_id,
+    bot.edit_message_text('Забег завершен.\n\n' + race.formatted_tracks, chat_id=CHANNEL_ID, message_id=msg_id,
                           parse_mode='Markdown')
 
-    won_bets = [[],[],[]]
+    result_list = ['''*Победители забега:*
+    `🥇 - {}`
+    `🥈 - {}`
+    `🥉 - {}`
+    '''.format(*race.winners)]
 
-    for bet in bets.items():
-        if bet[1] == winners[0]:
-            won_bets[0].append(bet[0])
-        elif bet[1] == winners[1]:
-            won_bets[1].append(bet[0])
-        elif bet[1] == winners[2]:
-            won_bets[2].append(bet[0])
+    # Обработка race.result
+    medal = {1: '🥇', 2: '🥈', 3: '🥉'}
+    for row in race.result:
+        result_list.append('\n{}{:<10.10}{:>5}💰({:>5}💰)'.format(medal[row['place']], row['first_name'],
+                                                                row['won'], row['money']))
 
-    result_text = '''*Победители забега:*
-    
-    `🥇 - {}` ({})
-    `🥈 - {}` ({})
-    `🥉 - {}` ({})'''.format(racers[winners[0]]['animal'], won_bets[0],
-                            racers[winners[1]]['animal'], won_bets[1],
-                            racers[winners[2]]['animal'], won_bets[2])
-    bot.send_message(CHANNEL_ID, result_text, parse_mode='Markdown')
-
-
-def get_formated_text():
-    result_text = []
-    for racer_num in range(TRACKS_NUM):
-        position = racers[racer_num]['position']
-        animal = racers[racer_num]['animal']
-        if position < RACE_LEN:
-            racer_row = '`🏁{}{}{}|{}️⃣`'.format('-' * (RACE_LEN - position), animal, '-' * position, racer_num + 1)
-        else:
-            if racer_num == winners[0]: prize = '🏆'
-            elif racer_num == winners[1]: prize = '🥈'
-            elif racer_num == winners[2]: prize = '🥉'
-            else: prize = '🏁'
-            racer_row = '`{}{}{}|{}️⃣`'.format(prize, animal, '-' * RACE_LEN, racer_num + 1)
-        result_text.append(racer_row)
-
-    return '\n'.join(result_text)
-
-
-def random_move_racers():
-    global racers
-    rnd_num = random.sample(range(TRACKS_NUM), TRACKS_NUM)
-    for racer_num in rnd_num:
-        rnd = random.randint(0, 100)
-        if rnd < 20: rnd = 0
-        elif rnd < 50: rnd = 2
-        else: rnd = 1
-        racers[racer_num]['position'] += rnd
-        if racers[racer_num]['position'] >= RACE_LEN and not racer_num in winners: winners.append(racer_num)
-        if len(winners) >= 3: break
+    bot.send_message(CHANNEL_ID, ''.join(result_list), parse_mode='Markdown')
 
 
 def logger_init():
