@@ -15,13 +15,13 @@ class Racing:
         self._bets = None
 
     def new_race(self):
-        self._race_id = db_wrap.new_race(self._tracks_cnt)
         self._finished = False
         self._started = False
         self._racers = []
         self._winners = []
         self._bets = {}
 
+        self._race_id = db_wrap.new_race(self._tracks_cnt)
         animals = db_wrap.get_animals(self._race_id)
         for track in range(self._tracks_cnt):
             self._racers.append({'animal': animals[track], 'position': 0})
@@ -35,6 +35,9 @@ class Racing:
             db_wrap.set_bet(user_id, self._race_id, self._bets[user_id]['track'], self._bets[user_id]['money'])
 
     def run(self):
+        if not self._race_id:
+            raise ValueError('Init new race by new_race() first')
+
         if not self._started:
             self._write_bets()
             self._started = True
