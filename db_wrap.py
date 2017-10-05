@@ -34,14 +34,14 @@ def update_user(user_id, user_name, first_name, last_name):
         return False
 
 
-def new_race(tracks_cnt):
+def new_race(tracks_cnt, user_id):
     if not 0 < tracks_cnt <= 10:
         logger.error('Количество дорожек должно быть от 1 до 10')
         return None
     try:
         with sqlite3.connect(SQLITE_DB_FILE, isolation_level=None) as conn:
             logger.debug("PRAGMA foreign_keys=ON;"
-                         "INSERT INTO Race (utc_time) SELECT strftime('%%s', 'now');"
+                         "INSERT INTO Race (utc_time, started_user) SELECT strftime('%%s', 'now'), %d;"
                          "CREATE TEMP TABLE rnd_emoji AS "                
                          "SELECT emoji, last_insert_rowid() as race_id FROM Animal ORDER BY RANDOM() LIMIT %d;"
                          "WITH tracks_gen AS (SELECT race_id,"
@@ -49,10 +49,10 @@ def new_race(tracks_cnt):
                          "emoji as animal"
                          "FROM rnd_emoji a)"
                          "INSERT INTO Tracks (race_id, animal, track) SELECT * FROM tracks_gen;"
-                         "SELECT race_id FROM Tracks WHERE id = last_insert_rowid()", tracks_cnt)
+                         "SELECT race_id FROM Tracks WHERE id = last_insert_rowid()", user_id or -1, tracks_cnt)
             conn.execute('BEGIN')
             conn.execute('PRAGMA foreign_keys=ON')
-            conn.execute("INSERT INTO Race (utc_time) SELECT strftime('%s', 'now')")
+            conn.execute("INSERT INTO Race (utc_time, started_user) SELECT strftime('%s', 'now'), ?", (user_id,))
             conn.execute('''CREATE TEMP TABLE rnd_emoji AS
             SELECT emoji as animal, last_insert_rowid() as race_id FROM Animal ORDER BY RANDOM() LIMIT ?''',
                          (tracks_cnt,))
@@ -66,7 +66,7 @@ def new_race(tracks_cnt):
     except sqlite3.Error:
         logger.info(
             "PRAGMA foreign_keys=ON;"
-            "INSERT INTO Race (utc_time) SELECT strftime('%%s', 'now');"
+            "INSERT INTO Race (utc_time, started_user) SELECT strftime('%%s', 'now'), %d;"
             "CREATE TEMP TABLE rnd_emoji AS "
             "SELECT emoji, last_insert_rowid() as race_id FROM Animal ORDER BY RANDOM() LIMIT %d;"
             "WITH tracks_gen AS (SELECT race_id,"
@@ -74,8 +74,7 @@ def new_race(tracks_cnt):
             "emoji as animal"
             "FROM rnd_emoji a)"
             "INSERT INTO Tracks (race_id, animal, track) SELECT * FROM tracks_gen;"
-            "SELECT race_id FROM Tracks WHERE id = last_insert_rowid()",
-            tracks_cnt)
+            "SELECT race_id FROM Tracks WHERE id = last_insert_rowid()", user_id or -1, tracks_cnt)
         logger.error('Ошибка создания нового забега в БД')
         return None
 

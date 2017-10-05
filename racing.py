@@ -14,14 +14,14 @@ class Racing:
         self._winners = None
         self._bets = None
 
-    def new_race(self):
+    def new_race(self, user_id=None):
         self._finished = False
         self._started = False
         self._racers = []
         self._winners = []
         self._bets = {}
 
-        self._race_id = db_wrap.new_race(self._tracks_cnt)
+        self._race_id = db_wrap.new_race(self._tracks_cnt, user_id)
         animals = db_wrap.get_animals(self._race_id)
         for track in range(self._tracks_cnt):
             self._racers.append({'animal': animals[track], 'position': 0})

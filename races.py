@@ -56,7 +56,7 @@ def callback_inline(call):
         logger.info('New user added(button)')
     if call.data == 'call_start' and not start_btn_clicked:
         start_btn_clicked = True
-        init_race(call.message.message_id)
+        init_race(call)
         logger.debug('Race init by {}'.format(call.from_user.first_name))
         threading.Thread(target=do_race, args=(call.message.message_id,)).start()
     elif 'call_bet_' in call.data:
@@ -94,10 +94,10 @@ def do_race(main_msg_id):
     show_start_btn()
 
 
-def init_race(msg_id):
-    race.new_race()
+def init_race(caller):
+    race.new_race(caller.from_user.id)
     bot.edit_message_text('Новый забег вот-вот начнется!\n\n' + race.formatted_tracks, chat_id=CHANNEL_ID,
-                          message_id=msg_id, parse_mode='Markdown')
+                          message_id=caller.message.message_id, parse_mode='Markdown')
 
 
 def run_race(msg_id):
