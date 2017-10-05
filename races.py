@@ -7,7 +7,7 @@ import logging
 import requests
 import threading
 from db_wrap import update_user
-from race import Race
+import racing
 from config import *
 
 
@@ -27,7 +27,7 @@ class BotHandler(logging.Handler):
 bot = telebot.TeleBot(TOKEN, threaded=False)
 # me = bot.get_me()
 start_btn_clicked = False
-race = None
+race = racing.Racing()
 
 
 #@bot.message_handler(func=lambda msg: True, commands=['start'])
@@ -95,8 +95,7 @@ def do_race(main_msg_id):
 
 
 def init_race(msg_id):
-    global race
-    race = Race()
+    race.new_race()
     bot.edit_message_text('Новый забег вот-вот начнется!\n\n' + race.formatted_tracks, chat_id=CHANNEL_ID,
                           message_id=msg_id, parse_mode='Markdown')
 

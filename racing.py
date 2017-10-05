@@ -3,10 +3,18 @@ import random
 from config import *
 
 
-class Race:
+class Racing:
     def __init__(self, tracks_cnt=TRACKS_NUM, race_len=RACE_LEN):
         self._tracks_cnt = tracks_cnt
         self._race_len = race_len
+        self._race_id = None
+        self._finished = None
+        self._started = None
+        self._racers = None
+        self._winners = None
+        self._bets = None
+
+    def new_race(self):
         self._race_id = db_wrap.new_race(self._tracks_cnt)
         self._finished = False
         self._started = False
