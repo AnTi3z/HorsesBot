@@ -13,6 +13,7 @@ class Racing:
         self._racers = None
         self._winners = None
         self._bets = None
+        self._result = None
 
     def new_race(self, user_id=None):
         self._finished = False
@@ -20,6 +21,7 @@ class Racing:
         self._racers = []
         self._winners = []
         self._bets = {}
+        self._result = None
 
         self._race_id = db_wrap.new_race(self._tracks_cnt, user_id)
         animals = db_wrap.get_animals(self._race_id)
@@ -60,6 +62,7 @@ class Racing:
                     # ФИНИШ
                     print('winners: %s  finished: %s' % (self._winners, self._finished))
                     db_wrap.set_result(self._race_id, self._winners[0]+1, self._winners[1]+1, self._winners[2]+1)
+                    self._result = db_wrap.get_bets_result(self._race_id)
                     self._finished = True
                     break
         return not self._finished
@@ -90,8 +93,7 @@ class Racing:
 
     @property
     def result(self):
-        result = db_wrap.get_bets_result(self._race_id)
-        return result
+        return self._result
 
     @property
     def finished(self):
