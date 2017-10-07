@@ -5,4 +5,3 @@ CHANNEL_ID = -1001128050160  # testing group
 TRACKS_NUM = 8
 RACE_LEN = 18
 SQLITE_DB_FILE = '/var/db/anti3z/races.sqlite'
-
