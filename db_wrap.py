@@ -189,3 +189,17 @@ def get_money(user_id):
         logger.error('Ошибка получения из БД количества денег игрока: %d', user_id)
 
 
+def get_last_bet(user_id):
+    try:
+        with sqlite3.connect(SQLITE_DB_FILE) as conn:
+            logger.debug('''SELECT money FROM Bets JOIN Tracks ON track_id = Tracks.id
+            JOIN Race ON race_id = Race.id WHERE user_id = %d
+            ORDER BY utc_time DESC LIMIT 1''', user_id)
+            return conn.execute('''SELECT money FROM Bets JOIN Tracks ON track_id = Tracks.id
+            JOIN Race ON race_id = Race.id WHERE user_id = ?
+            ORDER BY utc_time DESC LIMIT 1''', (user_id,)).fetchone()[0]
+    except sqlite3.Error:
+        logger.info('''SELECT money FROM Bets JOIN Tracks ON track_id = Tracks.id
+                    JOIN Race ON race_id = Race.id WHERE user_id = %d
+                    ORDER BY utc_time DESC LIMIT 1''', user_id)
+        logger.error('Ошибка получения из БД количества денег игрока: %d', user_id)
