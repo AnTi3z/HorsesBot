@@ -104,7 +104,6 @@ def set_bet(user_id, race_id, track_num, money):
             COMMIT TRANSACTION''', user_id, money, race_id, track_num)
             conn.execute('BEGIN TRANSACTION')
             conn.execute('PRAGMA foreign_keys=ON')
-            conn.execute('UPDATE User SET money = MAX(0,money - ?) WHERE tlg_id = ?', (money, user_id))
             conn.execute('''WITH track_bet AS
             (SELECT ? as user_id, id as track_id, ? as money FROM Tracks WHERE race_id = ? AND track = ?)
             INSERT INTO Bets (user_id, track_id, money) SELECT * FROM track_bet''',
@@ -142,35 +141,34 @@ def set_result(race_id, first_track, second_track, third_track):
                     race_id, first_track, race_id, second_track, race_id, third_track)
         logger.error('Ошибка записи результата забега %d в БД', race_id)
     else:
-        # проверить ставки игроков и выдать призовые
-        update_winners(race_id)
+        update_bets_result(race_id)
 
 
-def update_winners(race_id):
+def update_bets_result(race_id):
     try:
         with sqlite3.connect(SQLITE_DB_FILE) as conn:
             logger.debug('''UPDATE User SET Money = Money +
-            (SELECT bet+won FROM Bets_won WHERE User.tlg_id = Bets_won.user_id AND Bets_won.race_id = %d)
-            WHERE tlg_id IN (SELECT user_id FROM Bets_won WHERE Bets_won.race_id = %d)''', race_id, race_id)
-            conn.execute('''UPDATE User
-            SET Money = Money + (SELECT bet+won FROM Bets_won WHERE User.tlg_id = Bets_won.user_id AND Bets_won.race_id = ?)
-            WHERE tlg_id IN (SELECT user_id FROM Bets_won WHERE Bets_won.race_id = ?)''', (race_id, race_id))
+            (SELECT won FROM Bets_result WHERE User.tlg_id = Bets_result.user_id AND Bets_result.race_id = %d)
+            WHERE tlg_id IN (SELECT user_id FROM Bets_result WHERE Bets_result.race_id = %d)''', race_id, race_id)
+            conn.execute('''UPDATE User SET Money = Money +
+            (SELECT won FROM Bets_result WHERE User.tlg_id = Bets_result.user_id AND Bets_result.race_id = ?)
+            WHERE tlg_id IN (SELECT user_id FROM Bets_result WHERE Bets_result.race_id = ?)''', (race_id, race_id))
     except sqlite3.Error:
         logger.info('''UPDATE User SET Money = Money +
-                    (SELECT won FROM Bets_won WHERE User.tlg_id = Bets_won.user_id AND Bets_won.race_id = %d)
-                    WHERE tlg_id IN (SELECT user_id FROM Bets_won WHERE Bets_won.race_id = %d)''', race_id, race_id)
-        logger.error('Ошибка выдачи призовых забега %d в БД', race_id)
+        (SELECT won FROM Bets_result WHERE User.tlg_id = Bets_result.user_id AND Bets_result.race_id = %d)
+        WHERE tlg_id IN (SELECT user_id FROM Bets_result WHERE Bets_result.race_id = %d)''', race_id, race_id)
+        logger.error('Ошибка расчета призовых забега %d в БД', race_id)
 
 
 def get_bets_result(race_id):
     try:
         with sqlite3.connect(SQLITE_DB_FILE) as conn:
             conn.row_factory = sqlite3.Row
-            logger.debug('SELECT * FROM Bets_won WHERE race_id = %d ORDER BY won, place', race_id)
-            return conn.execute('SELECT * FROM Bets_won WHERE race_id = ? ORDER BY place, won DESC, money DESC',
+            logger.debug('SELECT * FROM Bets_result WHERE race_id = %d ORDER BY won, place', race_id)
+            return conn.execute('SELECT * FROM Bets_result WHERE race_id = ? ORDER BY place, won DESC, money DESC',
                                 (race_id,)).fetchall()
     except sqlite3.Error:
-        logger.info('SELECT * FROM Bets_won WHERE race_id = %d ORDER BY place, won DESC, money DESC', race_id)
+        logger.info('SELECT * FROM Bets_result WHERE race_id = %d ORDER BY place, won DESC, money DESC', race_id)
         logger.error('Ошибка получения из БД результатов забега', race_id)
 
 
