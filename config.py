@@ -1,7 +1,10 @@
-TOKEN = '374411418:AAFLZOyh7eNisH0cYut1uwKry-af7t6At8I'
+#TOKEN = '374411418:AAFLZOyh7eNisH0cYut1uwKry-af7t6At8I'  # Testing bot
+TOKEN = '471593255:AAGJCZombg3Tyr0MI8inMs7sioD_M1y1eq0'  # AnimalRacingBot
 OWNER_ID = 137360484
 # CHANNEL_ID =  -1001141707367  # Animal races channel
-CHANNEL_ID = -1001128050160  # testing group
+#CHANNEL_ID = -1001128050160  # Animal races group
+CHANNEL_ID = -1001055052315  #testing group
 TRACKS_NUM = 8
-RACE_LEN = 18
-SQLITE_DB_FILE = '/var/db/anti3z/races.sqlite'
+RACE_LEN = 16
+#SQLITE_DB_FILE = '/var/db/anti3z/races.sqlite'  # working DB
+SQLITE_DB_FILE = '/var/db/anti3z/races.test' # testing db
