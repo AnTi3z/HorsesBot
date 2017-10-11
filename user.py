@@ -3,38 +3,27 @@ from functools import partial
 
 
 class User:
-    # msg_callback = None
 
     def __init__(self, user_id):
-        # if not self.__class__.msg_callback:
-        #    raise AttributeError('You should initialize msg_callback class attribute first.')
         self._user_id = user_id
-        self._bet = None
         self.track = None
         self._menu = None
-        self._money = None
-        # self._msg_callback = partial(self.__class__.msg_callback, user_id)
 
-        self._get_user_data()
-
-    def _get_user_data(self):
         self._money = db_wrap.get_money(self._user_id)
-        self._set_bet(db_wrap.get_last_bet(self._user_id) or 10)
+        self._bet = db_wrap.get_last_bet(self._user_id) or 10
+
 
     def status_msg(self):
-        self._msg_callback('')
-        return 'Баланс: {:>5}'.format(self._money)
+        return '`Баланс: {:>12}💰`\n`Размер ставки: {:>5}💰`'.format(self._money, self._bet)
 
     def end_race(self, result):
-        if self._track:
+        if self.track:
             if result['place']:
                 medal = {1: '🥇', 2: '🥈', 3: '🥉'}
-                # self._msg_callback('Поздравляю!')
-                result_text = 'Поздравляю!'.format()
+                result_text = 'Поздравляю! Ваша ставка заняла {} место.\nВы заработали {}💰'.format(
+                    medal[result['place']], result['won'])
             else:
-                # self._msg_callback(
-                result_text = 'К сожалению, Ваша ставка проиграла.\n'\
-                              'Вы потеряли {}💰'.format(-result['won'])
+                result_text = 'К сожалению, Ваша ставка проиграла.\nВы потеряли {}💰'.format(-result['won'])
         self.track = None
         self._money = db_wrap.get_money(self._user_id)
         return result_text
@@ -59,7 +48,8 @@ class User:
             max_bet = int(self._money * 0.1)
             if val > max_bet:
                 self._bet = max_bet
-                result_text.append('Ставка не может превышать 10% имеющейся суммы.\n')
+                result_text.append('У Вас осталось всего {}💰.\n'
+                                   'Ставка не может превышать 10% имеющейся суммы.\n'.format(self._money))
             elif val < 10:
                 self._bet = 10
                 result_text.append('Минимальная ставка 10💰.\n')
@@ -77,14 +67,12 @@ class User:
                 self._bet = val
         else:
             self._bet = self._money
-            result_text.append('К сожалению, у Вас осталось всего: {}💰.')
+            result_text.append('К сожалению, у Вас осталось всего: {}💰.\n'.format(self._money))
 
-        result_text.append('Размер ставки установлен {}💰'.format(self._bet))
+        result_text.append('Размер ставки установлен {}💰.'.format(self._bet))
 
-        # self._msg_callback(''.join(result_text))
-        return result_text
+        return ''.join(result_text)
 
-    # bet_size = property(_get_bet, _set_bet)
 
     def _get_menu(self):
         pass
