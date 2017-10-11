@@ -40,16 +40,15 @@ def new_race(tracks_cnt, user_id):
         return None
     try:
         with sqlite3.connect(SQLITE_DB_FILE, isolation_level=None) as conn:
-            logger.debug("PRAGMA foreign_keys=ON;"
-                         "INSERT INTO Race (utc_time, started_user) SELECT strftime('%%s', 'now'), %d;"
-                         "CREATE TEMP TABLE rnd_emoji AS "                
-                         "SELECT emoji, last_insert_rowid() as race_id FROM Animal ORDER BY RANDOM() LIMIT %d;"
-                         "WITH tracks_gen AS (SELECT race_id,"
-                         "(SELECT COUNT(*) FROM rnd_emoji b WHERE a.rowid >= b.rowid) as track,"
-                         "emoji as animal"
-                         "FROM rnd_emoji a)"
-                         "INSERT INTO Tracks (race_id, animal, track) SELECT * FROM tracks_gen;"
-                         "SELECT race_id FROM Tracks WHERE id = last_insert_rowid()", user_id or -1, tracks_cnt)
+            logger.debug("""PRAGMA foreign_keys=ON;
+            INSERT INTO Race (utc_time, started_user) SELECT strftime('%%s', 'now'), %d;
+            CREATE TEMP TABLE rnd_emoji AS
+            SELECT emoji, last_insert_rowid() as race_id FROM Animal ORDER BY RANDOM() LIMIT %d;
+            WITH tracks_gen AS (SELECT race_id,
+            (SELECT COUNT(*) FROM rnd_emoji b WHERE a.rowid >= b.rowid) as track, emoji as animal
+            FROM rnd_emoji a)
+            INSERT INTO Tracks (race_id, animal, track) SELECT * FROM tracks_gen;
+            SELECT race_id FROM Tracks WHERE id = last_insert_rowid()""", user_id or -1, tracks_cnt)
             conn.execute('BEGIN')
             conn.execute('PRAGMA foreign_keys=ON')
             conn.execute("INSERT INTO Race (utc_time, started_user) SELECT strftime('%s', 'now'), ?", (user_id,))
@@ -64,17 +63,15 @@ def new_race(tracks_cnt, user_id):
             conn.execute('COMMIT')
             return race_id
     except sqlite3.Error:
-        logger.info(
-            "PRAGMA foreign_keys=ON;"
-            "INSERT INTO Race (utc_time, started_user) SELECT strftime('%%s', 'now'), %d;"
-            "CREATE TEMP TABLE rnd_emoji AS "
-            "SELECT emoji, last_insert_rowid() as race_id FROM Animal ORDER BY RANDOM() LIMIT %d;"
-            "WITH tracks_gen AS (SELECT race_id,"
-            "(SELECT COUNT(*) FROM rnd_emoji b WHERE a.rowid >= b.rowid) as track,"
-            "emoji as animal"
-            "FROM rnd_emoji a)"
-            "INSERT INTO Tracks (race_id, animal, track) SELECT * FROM tracks_gen;"
-            "SELECT race_id FROM Tracks WHERE id = last_insert_rowid()", user_id or -1, tracks_cnt)
+        logger.info("""PRAGMA foreign_keys=ON;
+        INSERT INTO Race (utc_time, started_user) SELECT strftime('%%s', 'now'), %d;
+        CREATE TEMP TABLE rnd_emoji AS
+        SELECT emoji, last_insert_rowid() as race_id FROM Animal ORDER BY RANDOM() LIMIT %d;
+        WITH tracks_gen AS (SELECT race_id,
+        (SELECT COUNT(*) FROM rnd_emoji b WHERE a.rowid >= b.rowid) as track, emoji as animal
+        FROM rnd_emoji a)
+        INSERT INTO Tracks (race_id, animal, track) SELECT * FROM tracks_gen;
+        SELECT race_id FROM Tracks WHERE id = last_insert_rowid()""", user_id or -1, tracks_cnt)
         logger.error('Ошибка создания нового забега в БД')
         return None
 
@@ -98,14 +95,13 @@ def get_animals(race_id):
 def set_bet(user_id, race_id, track_num, money):
     try:
         with sqlite3.connect(SQLITE_DB_FILE, isolation_level=None) as conn:
-            logger.debug('BEGIN TRANSACTION;'
-                         'PRAGMA foreign_keys=ON;'
-                         'UPDATE User SET money = MAX(0,money - %d) WHERE tlg_id = %d;'
-                         'WITH track_bet AS'
-                         '(SELECT %d as user_id, id as track_id, %d as money '
-                         'FROM Tracks WHERE race_id = %d AND track = %d)'
-                         'INSERT INTO Bets (user_id, track_id, money) SELECT * FROM track_bet;'
-                         'COMMIT TRANSACTION', money, user_id, user_id, money, race_id, track_num)
+            logger.debug('''BEGIN TRANSACTION;
+            PRAGMA foreign_keys=ON;
+            WITH track_bet AS
+            (SELECT %d as user_id, id as track_id, %d as money 
+            FROM Tracks WHERE race_id = %d AND track = %d)
+            INSERT INTO Bets (user_id, track_id, money) SELECT * FROM track_bet;
+            COMMIT TRANSACTION''', user_id, money, race_id, track_num)
             conn.execute('BEGIN TRANSACTION')
             conn.execute('PRAGMA foreign_keys=ON')
             conn.execute('UPDATE User SET money = MAX(0,money - ?) WHERE tlg_id = ?', (money, user_id))
@@ -115,14 +111,13 @@ def set_bet(user_id, race_id, track_num, money):
                          (user_id, money, race_id, track_num))
             conn.execute('COMMIT TRANSACTION')
     except sqlite3.Error:
-        logger.info('BEGIN TRANSACTION;'
-                    'PRAGMA foreign_keys=ON;'
-                    'UPDATE User SET money = MAX(0,money - %d) WHERE tlg_id = %d;'
-                    'WITH track_bet AS'
-                    '(SELECT %d as user_id, id as track_id, %d as money '
-                    'FROM Tracks WHERE race_id = %d AND track = %d)'
-                    'INSERT INTO Bets (user_id, track_id, money) SELECT * FROM track_bet;'
-                    'COMMIT TRANSACTION', money, user_id, user_id, money, race_id, track_num)
+        logger.info('''BEGIN TRANSACTION;
+        PRAGMA foreign_keys=ON;
+        WITH track_bet AS
+        (SELECT %d as user_id, id as track_id, %d as money 
+        FROM Tracks WHERE race_id = %d AND track = %d)
+        INSERT INTO Bets (user_id, track_id, money) SELECT * FROM track_bet;
+        COMMIT TRANSACTION''', user_id, money, race_id, track_num)
         logger.error('Ставка от %d (money: %d) не принята в БД', user_id, money)
 
 
@@ -202,4 +197,4 @@ def get_last_bet(user_id):
         logger.info('''SELECT money FROM Bets JOIN Tracks ON track_id = Tracks.id
                     JOIN Race ON race_id = Race.id WHERE user_id = %d
                     ORDER BY utc_time DESC LIMIT 1''', user_id)
-        logger.error('Ошибка получения из БД количества денег игрока: %d', user_id)
+        logger.error('Ошибка получения из БД последней ставки игрока: %d', user_id)
