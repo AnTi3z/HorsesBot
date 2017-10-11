@@ -8,6 +8,7 @@ import requests
 import threading
 from db_wrap import update_user
 import racing
+import user
 from config import *
 
 
@@ -28,23 +29,34 @@ bot = telebot.TeleBot(TOKEN, threaded=False)
 # me = bot.get_me()
 start_btn_clicked = False
 race = racing.Racing()
+users = {}
 
-
-#@bot.message_handler(func=lambda msg: True, commands=['start'])
-#def on_start(msg):
-#    show_start_btn()
 
 @bot.message_handler(func=lambda msg: msg.chat.id == CHANNEL_ID, content_types=['new_chat_members'])
 def on_user_joins(msg):
-    logger.debug('User joined support channel (id:%d)', msg.new_chat_member.id)
+    logger.debug('User joined channel (id:%d)', msg.new_chat_member.id)
     new_user = msg.new_chat_member
+    if new_user.id not in users:
+        users[new_user.id] = user.User(new_user.id)
     if update_user(new_user.id, new_user.username, new_user.first_name, new_user.last_name):
         logger.info('New user added(join)')
+
+
+@bot.message_handler(commands=['bet'])
+def on_bet_msg(msg):
+    _, *args = msg.text.split()
+    try:
+        result_msg = users[msg.from_user.id].set_bet(int(args[0]))
+        bot.send_message(msg.from_user.id, result_msg, parse_mode='Markdown')
+    except ValueError:
+        logger.warning('set_bet error from user: %s args[0]: %s', msg.from_user.first_name, str(args[0]))
 
 
 @bot.message_handler(func=lambda msg: True)
 def on_any_msg(msg):
     new_user = msg.from_user
+    if new_user.id not in users:
+        users[new_user.id] = user.User(new_user.id)
     if update_user(new_user.id, new_user.username, new_user.first_name, new_user.last_name):
         logger.info('New user added(msg)')
 
@@ -52,6 +64,8 @@ def on_any_msg(msg):
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
     global start_btn_clicked
+    if call.from_user.id not in users:
+        users[call.from_user.id] = user.User(call.from_user.id)
     if update_user(call.from_user.id, call.from_user.username, call.from_user.first_name, call.from_user.last_name):
         logger.info('New user added(button)')
     if call.data == 'call_start' and not start_btn_clicked:
@@ -60,7 +74,12 @@ def callback_inline(call):
         logger.debug('Race init by {}'.format(call.from_user.first_name))
         threading.Thread(target=do_race, args=(call.message.message_id,)).start()
     elif 'call_bet_' in call.data:
-        race.set_bet(call.from_user.id, int(call.data[9:])+1, 10)
+        users[call.from_user.id].track = int(call.data[9:])+1
+        bot.send_message(call.from_user.id, 'Вы выбрали {} бегущего по {}️⃣ дорожке.\nВаша текущая ставка {}💰.'.format(
+            race.racers[users[call.from_user.id].track-1]['animal'],
+            users[call.from_user.id].track,
+            users[call.from_user.id].bet
+        ))
         logger.debug('{} bets on {}'.format(call.from_user.first_name, int(call.data[9:])+1))
 
 
@@ -89,6 +108,7 @@ def do_race(main_msg_id):
     bets_panel_msg_id = show_bets_panel()
     time.sleep(30)
     bot.delete_message(CHANNEL_ID, bets_panel_msg_id)
+    write_bets()
     run_race(main_msg_id)
     finish_race(main_msg_id)
     show_start_btn()
@@ -98,6 +118,15 @@ def init_race(caller):
     race.new_race(caller.from_user.id)
     bot.edit_message_text('Новый забег вот-вот начнется!\n\n' + race.formatted_tracks, chat_id=CHANNEL_ID,
                           message_id=caller.message.message_id, parse_mode='Markdown')
+
+
+def write_bets():
+    for user_id in users:
+        if users[user_id].track:
+            race.set_bet(user_id, users[user_id].track, users[user_id].bet)
+            bot.send_message(user_id, 'Ваша ставка {}💰 на {} бегущего по {}️⃣ дорожке принята.'.format(
+                users[user_id].bet, race.racers[users[user_id].track-1]['animal'], users[user_id].track
+            ))
 
 
 def run_race(msg_id):
@@ -120,8 +149,15 @@ def finish_race(msg_id):
     # Обработка race.result
     medal = {1: '🥇', 2: '🥈', 3: '🥉'}
     for row in race.result:
-        result_list.append('\n{}`{:<10.10}{:>5}💰({:>5}💰)`'.format(medal[row['place']], row['first_name'],
-                                                                row['won'], row['money']))
+        msg = users[row['user_id']].end_race(row)
+        bot.send_message(row['user_id'], msg, parse_mode='Markdown')
+        bot.send_message(row['user_id'], users[row['user_id']].status_msg(), parse_mode='Markdown')
+        if row['place']:
+            result_list.append('\n{}`{:<10.10}{:>5}💰({:>5}💰)`'.format(medal[row['place']], row['first_name'],
+                                                                        row['won'], row['money']))
+        else:
+            #проверить текущий размер ставки
+            pass
 
     bot.send_message(CHANNEL_ID, ''.join(result_list), parse_mode='Markdown')
 
