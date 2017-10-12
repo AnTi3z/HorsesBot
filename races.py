@@ -147,7 +147,7 @@ def finish_race(msg_id):
 
     # Обработка race.result
     medal = {1: '🥇', 2: '🥈', 3: '🥉'}
-    for row in race.result:
+    for i, row in enumerate(race.result):
         msg = users[row['user_id']].end_race(row)
         try:
             bot.send_message(row['user_id'], msg, parse_mode='Markdown')
@@ -155,11 +155,14 @@ def finish_race(msg_id):
         except telebot.apihelper.ApiException:
             logger.debug('Private messaging to user %s blocked', row['first_name'])
         if row['place']:
-            result_list.append('\n{}`{:<10.10}{:>5}💰({:>5}💰)`'.format(medal[row['place']], row['first_name'],
-                                                                        row['won'], row['money']))
+            result_list.append('\n`{}{:<10.10} {:>5}💰`'.format(medal[row['place']], row['first_name'], row['won']))
         else:
-            #проверить текущий размер ставки
-            pass
+            if i < 10:
+                result_list.append('\n` {:<10.10} {:>5}💰`'.format(row['first_name'], row['won']))
+            tmp_bet = users[row['user_id']].bet
+            msg = users[row['user_id']].set_bet(tmp_bet)
+            if users[row['user_id']].bet != tmp_bet:
+                bot.send_message(row['user_id'], msg, parse_mode='Markdown')
 
     bot.send_message(CHANNEL_ID, ''.join(result_list), parse_mode='Markdown')
 
