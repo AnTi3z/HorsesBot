@@ -120,9 +120,12 @@ def write_bets():
     for user_id in users:
         if users[user_id].track:
             race.set_bet(user_id, users[user_id].track, users[user_id].bet)
-            bot.send_message(user_id, 'Ваша ставка {}💰 на {} бегущего по {}️⃣ дорожке принята.'.format(
-                users[user_id].bet, race.racers[users[user_id].track-1]['animal'], users[user_id].track
-            ))
+            try:
+                bot.send_message(user_id, 'Ваша ставка {}💰 на {} бегущего по {}️⃣ дорожке принята.'.format(
+                    users[user_id].bet, race.racers[users[user_id].track-1]['animal'], users[user_id].track
+                ))
+            except telebot.apihelper.ApiException:
+                logger.debug('Private messaging to user %d blocked', user_id)
 
 
 def run_race(msg_id):
@@ -146,8 +149,11 @@ def finish_race(msg_id):
     medal = {1: '🥇', 2: '🥈', 3: '🥉'}
     for row in race.result:
         msg = users[row['user_id']].end_race(row)
-        bot.send_message(row['user_id'], msg, parse_mode='Markdown')
-        bot.send_message(row['user_id'], users[row['user_id']].status_msg(), parse_mode='Markdown')
+        try:
+            bot.send_message(row['user_id'], msg, parse_mode='Markdown')
+            bot.send_message(row['user_id'], users[row['user_id']].status_msg(), parse_mode='Markdown')
+        except telebot.apihelper.ApiException:
+            logger.debug('Private messaging to user %s blocked', row['first_name'])
         if row['place']:
             result_list.append('\n{}`{:<10.10}{:>5}💰({:>5}💰)`'.format(medal[row['place']], row['first_name'],
                                                                         row['won'], row['money']))
