@@ -71,10 +71,10 @@ def callback_inline(call):
         threading.Thread(target=do_race, args=(call.message.message_id,)).start()
     elif 'call_bet_' in call.data:
         users[call.from_user.id].track = int(call.data[9:])+1
-        bot.send_message(call.from_user.id, 'Вы выбрали {} бегущего по {}️⃣ дорожке.\nВаша текущая ставка {}💰.'.format(
+        bot.answer_callback_query(call.id, '{}💰 на {} по {}️⃣ дорожке.'.format(
+            users[call.from_user.id].bet,
             race.racers[users[call.from_user.id].track-1]['animal'],
-            users[call.from_user.id].track,
-            users[call.from_user.id].bet
+            users[call.from_user.id].track
         ))
         logger.debug('{} bets on {}'.format(call.from_user.first_name, int(call.data[9:])+1))
 
