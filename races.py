@@ -106,7 +106,7 @@ def show_bets_panel():
 
 def do_race(main_msg_id):
     bets_panel_msg_id = show_bets_panel()
-    time.sleep(30)
+    time.sleep(45)
     bot.delete_message(CHANNEL_ID, bets_panel_msg_id)
     write_bets()
     run_race(main_msg_id)
