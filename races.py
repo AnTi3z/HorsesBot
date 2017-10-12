@@ -36,15 +36,15 @@ users = {}
 def on_user_joins(msg):
     logger.debug('User joined channel (id:%d)', msg.new_chat_member.id)
     new_user = msg.new_chat_member
-    if new_user.id not in users:
-        users[new_user.id] = user.User(new_user.id)
-    if update_user(new_user.id, new_user.username, new_user.first_name, new_user.last_name):
-        logger.info('New user added(join)')
+    if check_user(new_user):
+        logger.info('New user in DB added(join)')
 
 
 @bot.message_handler(commands=['bet'])
 def on_bet_msg(msg):
     _, *args = msg.text.split()
+    if check_user(msg.from_user):
+        logger.info('New user in DB added(command)')
     try:
         result_msg = users[msg.from_user.id].set_bet(int(args[0]))
         bot.send_message(msg.from_user.id, result_msg, parse_mode='Markdown')
@@ -55,19 +55,15 @@ def on_bet_msg(msg):
 @bot.message_handler(func=lambda msg: True)
 def on_any_msg(msg):
     new_user = msg.from_user
-    if new_user.id not in users:
-        users[new_user.id] = user.User(new_user.id)
-    if update_user(new_user.id, new_user.username, new_user.first_name, new_user.last_name):
-        logger.info('New user added(msg)')
+    if check_user(new_user):
+        logger.info('New user in DB added(msg)')
 
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
     global start_btn_clicked
-    if call.from_user.id not in users:
-        users[call.from_user.id] = user.User(call.from_user.id)
-    if update_user(call.from_user.id, call.from_user.username, call.from_user.first_name, call.from_user.last_name):
-        logger.info('New user added(button)')
+    if check_user(call.from_user):
+        logger.info('New user in DB added(button)')
     if call.data == 'call_start' and not start_btn_clicked:
         start_btn_clicked = True
         init_race(call)
@@ -160,6 +156,12 @@ def finish_race(msg_id):
             pass
 
     bot.send_message(CHANNEL_ID, ''.join(result_list), parse_mode='Markdown')
+
+
+def check_user(new_user):
+    if new_user.id not in users:
+        users[new_user.id] = user.User(new_user.id)
+    return update_user(new_user.id, new_user.username, new_user.first_name, new_user.last_name)
 
 
 def logger_init():
