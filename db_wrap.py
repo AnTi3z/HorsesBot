@@ -164,11 +164,14 @@ def get_bets_result(race_id):
     try:
         with sqlite3.connect(SQLITE_DB_FILE) as conn:
             conn.row_factory = sqlite3.Row
-            logger.debug('SELECT * FROM Bets_result WHERE race_id = %d ORDER BY won, place', race_id)
-            return conn.execute('SELECT * FROM Bets_result WHERE race_id = ? ORDER BY place, won DESC, money DESC',
+            logger.debug('SELECT * FROM Bets_result WHERE race_id = %d'
+                         'ORDER BY place IS NULL, place, won DESC, money DESC', race_id)
+            return conn.execute('SELECT * FROM Bets_result WHERE race_id = ?'
+                                'ORDER BY place IS NULL, place, won DESC, money DESC',
                                 (race_id,)).fetchall()
     except sqlite3.Error:
-        logger.info('SELECT * FROM Bets_result WHERE race_id = %d ORDER BY place, won DESC, money DESC', race_id)
+        logger.info('SELECT * FROM Bets_result WHERE race_id = %d'
+                    'ORDER BY place IS NULL, place, won DESC, money DESC', race_id)
         logger.error('Ошибка получения из БД результатов забега', race_id)
 
 
