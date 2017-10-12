@@ -50,6 +50,10 @@ def on_bet_msg(msg):
         bot.send_message(msg.from_user.id, result_msg, parse_mode='Markdown')
     except ValueError:
         logger.warning('set_bet error from user: %s args[0]: %s', msg.from_user.first_name, str(args[0]))
+    except IndexError:
+        logger.warning('set_bet empty value from user: %s', msg.from_user.first_name)
+    except telebot.apihelper.ApiException:
+        logger.debug('Private messaging to user %s blocked', msg.from_user.first_name)
 
 
 @bot.message_handler(func=lambda msg: True)
