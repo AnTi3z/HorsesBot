@@ -4,11 +4,23 @@ from config import *
 
 logger = logging.getLogger('AnimalRaces')
 
+logging.SQL = 5
+logging.addLevelName(logging.SQL, "SQL")
+
+
+def sql(self, message, *args, **kws):
+    # Yes, logger takes its '*args' as 'args'.
+    if self.isEnabledFor(logging.SQL):
+        self._log(logging.SQL, message, args, **kws)
+
+
+logging.Logger.sql = sql
+
 
 def update_user(user_id, user_name, first_name, last_name):
     try:
         with sqlite3.connect(SQLITE_DB_FILE) as conn:
-            logger.debug(
+            logger.sql(
                 "INSERT or IGNORE INTO User (tlg_id, user_name, first_name, last_name) VALUES(%d,'%s','%s','%s')",
                 user_id, user_name, first_name, last_name)
             curs = conn.execute('''INSERT or IGNORE INTO User
@@ -40,7 +52,7 @@ def new_race(tracks_cnt, user_id):
         return None
     try:
         with sqlite3.connect(SQLITE_DB_FILE, isolation_level=None) as conn:
-            logger.debug("""PRAGMA foreign_keys=ON;
+            logger.sql("""PRAGMA foreign_keys=ON;
             INSERT INTO Race (utc_time, started_user) SELECT strftime('%%s', 'now'), %d;
             CREATE TEMP TABLE rnd_emoji AS
             SELECT emoji, last_insert_rowid() as race_id FROM Animal ORDER BY RANDOM() LIMIT %d;
@@ -72,18 +84,18 @@ def new_race(tracks_cnt, user_id):
         FROM rnd_emoji a)
         INSERT INTO Tracks (race_id, animal, track) SELECT * FROM tracks_gen;
         SELECT race_id FROM Tracks WHERE id = last_insert_rowid()""", user_id or -1, tracks_cnt)
-        logger.error('Ошибка создания нового забега в БД')
+        logger.exception('Ошибка создания нового забега в БД')
         return None
 
 
 def get_animals(race_id):
     try:
         with sqlite3.connect(SQLITE_DB_FILE) as conn:
-            logger.debug('SELECT animal FROM tracks WHERE race_id = %d ORDER BY track', race_id)
+            logger.sql('SELECT animal FROM tracks WHERE race_id = %d ORDER BY track', race_id)
             results = conn.execute('SELECT animal FROM tracks WHERE race_id = ? ORDER BY track', (race_id,)).fetchall()
     except sqlite3.Error:
         logger.info('SELECT animal FROM tracks WHERE race_id = %d ORDER BY track', race_id)
-        logger.error('Ошибка получения из БД списка животных в забеге')
+        logger.exception('Ошибка получения из БД списка животных в забеге')
         return None
 
     animals = []
@@ -95,7 +107,7 @@ def get_animals(race_id):
 def set_bet(user_id, race_id, track_num, money):
     try:
         with sqlite3.connect(SQLITE_DB_FILE, isolation_level=None) as conn:
-            logger.debug('''BEGIN TRANSACTION;
+            logger.sql('''BEGIN TRANSACTION;
             PRAGMA foreign_keys=ON;
             WITH track_bet AS
             (SELECT %d as user_id, id as track_id, %d as money 
@@ -117,13 +129,13 @@ def set_bet(user_id, race_id, track_num, money):
         FROM Tracks WHERE race_id = %d AND track = %d)
         INSERT INTO Bets (user_id, track_id, money) SELECT * FROM track_bet;
         COMMIT TRANSACTION''', user_id, money, race_id, track_num)
-        logger.error('Ставка от %d (money: %d) не принята в БД', user_id, money)
+        logger.exception('Ставка от %d (money: %d) не принята в БД', user_id, money)
 
 
 def set_result(race_id, first_track, second_track, third_track):
     try:
         with sqlite3.connect(SQLITE_DB_FILE) as conn:
-            logger.debug('''INSERT INTO Result (track_id, place) VALUES
+            logger.sql('''INSERT INTO Result (track_id, place) VALUES
             ((SELECT id FROM Tracks WHERE race_id = %d AND track = %d), 1),
             ((SELECT id FROM Tracks WHERE race_id = %d AND track = %d), 2),
             ((SELECT id FROM Tracks WHERE race_id = %d AND track = %d), 3)''',
@@ -139,7 +151,7 @@ def set_result(race_id, first_track, second_track, third_track):
                     ((SELECT id FROM Tracks WHERE race_id = %d AND track = %d), 2),
                     ((SELECT id FROM Tracks WHERE race_id = %d AND track = %d), 3)''',
                     race_id, first_track, race_id, second_track, race_id, third_track)
-        logger.error('Ошибка записи результата забега %d в БД', race_id)
+        logger.exception('Ошибка записи результата забега %d в БД', race_id)
     else:
         update_bets_result(race_id)
 
@@ -147,7 +159,7 @@ def set_result(race_id, first_track, second_track, third_track):
 def update_bets_result(race_id):
     try:
         with sqlite3.connect(SQLITE_DB_FILE) as conn:
-            logger.debug('''UPDATE User SET Money = Money +
+            logger.sql('''UPDATE User SET Money = Money +
             (SELECT won FROM Bets_result WHERE User.tlg_id = Bets_result.user_id AND Bets_result.race_id = %d)
             WHERE tlg_id IN (SELECT user_id FROM Bets_result WHERE Bets_result.race_id = %d)''', race_id, race_id)
             conn.execute('''UPDATE User SET Money = Money +
@@ -157,14 +169,14 @@ def update_bets_result(race_id):
         logger.info('''UPDATE User SET Money = Money +
         (SELECT won FROM Bets_result WHERE User.tlg_id = Bets_result.user_id AND Bets_result.race_id = %d)
         WHERE tlg_id IN (SELECT user_id FROM Bets_result WHERE Bets_result.race_id = %d)''', race_id, race_id)
-        logger.error('Ошибка расчета призовых забега %d в БД', race_id)
+        logger.exception('Ошибка расчета призовых забега %d в БД', race_id)
 
 
 def get_bets_result(race_id):
     try:
         with sqlite3.connect(SQLITE_DB_FILE) as conn:
             conn.row_factory = sqlite3.Row
-            logger.debug('SELECT * FROM Bets_result WHERE race_id = %d'
+            logger.sql('SELECT * FROM Bets_result WHERE race_id = %d'
                          'ORDER BY place IS NULL, place, won DESC, money DESC', race_id)
             return conn.execute('SELECT * FROM Bets_result WHERE race_id = ?'
                                 'ORDER BY place IS NULL, place, won DESC, money DESC',
@@ -172,23 +184,23 @@ def get_bets_result(race_id):
     except sqlite3.Error:
         logger.info('SELECT * FROM Bets_result WHERE race_id = %d'
                     'ORDER BY place IS NULL, place, won DESC, money DESC', race_id)
-        logger.error('Ошибка получения из БД результатов забега', race_id)
+        logger.exception('Ошибка получения из БД результатов забега', race_id)
 
 
 def get_money(user_id):
     try:
         with sqlite3.connect(SQLITE_DB_FILE) as conn:
-            logger.debug('SELECT Money FROM User WHERE tlg_id = %d', user_id)
+            logger.sql('SELECT Money FROM User WHERE tlg_id = %d', user_id)
             return conn.execute('SELECT Money FROM User WHERE tlg_id = ?', (user_id,)).fetchone()[0]
     except sqlite3.Error:
         logger.info('SELECT Money FROM User WHERE tlg_id = %d', user_id)
-        logger.error('Ошибка получения из БД количества денег игрока: %d', user_id)
+        logger.exception('Ошибка получения из БД количества денег игрока: %d', user_id)
 
 
 def get_last_bet(user_id):
     try:
         with sqlite3.connect(SQLITE_DB_FILE) as conn:
-            logger.debug('''SELECT money FROM Bets JOIN Tracks ON track_id = Tracks.id
+            logger.sql('''SELECT money FROM Bets JOIN Tracks ON track_id = Tracks.id
             JOIN Race ON race_id = Race.id WHERE user_id = %d
             ORDER BY utc_time DESC LIMIT 1''', user_id)
             return conn.execute('''SELECT money FROM Bets JOIN Tracks ON track_id = Tracks.id
@@ -198,4 +210,4 @@ def get_last_bet(user_id):
         logger.info('''SELECT money FROM Bets JOIN Tracks ON track_id = Tracks.id
                     JOIN Race ON race_id = Race.id WHERE user_id = %d
                     ORDER BY utc_time DESC LIMIT 1''', user_id)
-        logger.error('Ошибка получения из БД последней ставки игрока: %d', user_id)
+        logger.exception('Ошибка получения из БД последней ставки игрока: %d', user_id)
