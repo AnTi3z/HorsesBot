@@ -197,6 +197,16 @@ def get_money(user_id):
         logger.exception('Ошибка получения из БД количества денег игрока: %d', user_id)
 
 
+def set_money(user_id, money):
+    try:
+        with sqlite3.connect(SQLITE_DB_FILE) as conn:
+            logger.sql('UPDATE User SET Money = %d WHERE tlg_id = %d', money, user_id)
+            conn.execute('UPDATE User SET Money = ? WHERE tlg_id = ?', (money, user_id,))
+    except sqlite3.Error:
+        logger.info('UPDATE User SET Money = %d WHERE tlg_id = %d', money, user_id)
+        logger.exception('Ошибка записи в БД %d денег игроку: %d', money, user_id)
+
+
 def get_last_bet(user_id):
     try:
         with sqlite3.connect(SQLITE_DB_FILE) as conn:
