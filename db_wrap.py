@@ -27,7 +27,7 @@ def update_user(user_id, user_name, first_name, last_name):
             (tlg_id, user_name, first_name, last_name) VALUES(?,?,?,?)''',
                                 (user_id, user_name, first_name, last_name))
             if curs.rowcount == 0:
-                logger.debug("UPDATE User SET user_name='%s', first_name='%s', last_name='%s' WHERE tlg_id=%d",
+                logger.sql("UPDATE User SET user_name='%s', first_name='%s', last_name='%s' WHERE tlg_id=%d",
                              user_name, first_name, last_name, user_id)
                 conn.execute('UPDATE User SET user_name=?, first_name=?, last_name=? WHERE tlg_id=?',
                              (user_name, first_name, last_name, user_id))
