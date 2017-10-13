@@ -53,7 +53,6 @@ class Racing:
                     self._winners.append(racer_num)
                 if len(self._winners) >= 3:
                     # ФИНИШ
-                    print('winners: %s  finished: %s' % (self._winners, self._finished))
                     db_wrap.set_result(self._race_id, self._winners[0]+1, self._winners[1]+1, self._winners[2]+1)
                     self._result = db_wrap.get_bets_result(self._race_id)
                     self._finished = True
