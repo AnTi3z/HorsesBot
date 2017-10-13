@@ -28,6 +28,9 @@ class User:
                     medal[result['place']], result['won']))
             else:
                 self._msg_queue.put('К сожалению, Ваша ставка проиграла.\nВы потеряли {}💰'.format(-result['won']))
+                if self._bet > self.max_bet:
+                    self.set_bet(self.max_bet)
+
             self.send_status_msg()
 
     @property

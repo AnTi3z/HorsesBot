@@ -153,13 +153,8 @@ def finish_race(msg_id):
         users[row['user_id']].end_race(row)
         if row['place']:
             result_list.append('\n`{}{:<10.10} {:>5}💰`'.format(medal[row['place']], row['first_name'], row['won']))
-        else:
-            if i < 10:
-                result_list.append('\n` {:<10.10} {:>5}💰`'.format(row['first_name'], row['won']))
-            tmp_bet = users[row['user_id']].bet
-            msg = users[row['user_id']].set_bet(tmp_bet)
-            if users[row['user_id']].bet != tmp_bet:
-                bot.send_message(row['user_id'], msg, parse_mode='Markdown')
+        elif i < 10:
+            result_list.append('\n`   {:<10.10} {:>5}💰`'.format(row['first_name'], row['won']))
 
     bot.send_message(CHANNEL_ID, ''.join(result_list), parse_mode='Markdown')
 
