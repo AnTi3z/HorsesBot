@@ -31,7 +31,7 @@ def update_user(user_id, user_name, first_name, last_name):
                              user_name, first_name, last_name, user_id)
                 conn.execute('UPDATE User SET user_name=?, first_name=?, last_name=? WHERE tlg_id=?',
                              (user_name, first_name, last_name, user_id))
-                logger.debug('User updated')
+                # logger.debug('User updated')
                 return False
             else:
                 logger.info('Новый пользователь: %d `%s %s` (@`%s`)', user_id, first_name, last_name, user_name)
