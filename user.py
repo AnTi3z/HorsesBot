@@ -47,8 +47,17 @@ class User:
             self._bet = db_wrap.get_last_bet(self._user_id) or 10
         return self._bet
 
+    @property
+    def max_bet(self):
+        m_b = int(self._money * 0.1) #, self._money - 1000)
+        if m_b < 10:
+            return min(10, self._money)
+        else:
+            return m_b
+
     def set_bet(self, val):
         result_text = []
+
         if self._money > 100:
             max_bet = int(self._money * 0.1)
             if val > max_bet:
