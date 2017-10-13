@@ -22,7 +22,7 @@ class BotHandler(logging.Handler):
 
     def emit(self, record):
         msg = self.format(record)
-        bot.send_message(OWNER_ID, msg)  # , parse_mode='Markdown')
+        bot.send_message(LOGS_CHANNEL, msg)  # , parse_mode='Markdown')
 
 
 bot = telebot.TeleBot(TOKEN, threaded=False)
