@@ -8,7 +8,7 @@ class User:
     def __init__(self, user_id):
         self._user_id = user_id
         self.track = None
-        self._menu = None
+        self.menu = 0
         self._last_msg_utc = 0
 
         self._money = db_wrap.get_money(self._user_id)
@@ -94,7 +94,6 @@ class User:
         result_text.append('Размер ставки установлен {}💰.'.format(self._bet))
         self._msg_queue.put(''.join(result_text))
 
-
     def get_msg(self):
         now = time.clock()
         if not self._msg_queue.empty() and (now - self._last_msg_utc) >= 1:
@@ -105,11 +104,3 @@ class User:
 
     def put_msg(self, msg):
         self._msg_queue.put(msg)
-
-    def _get_menu(self):
-        pass
-
-    def _set_menu(self, val):
-        pass
-
-    menu = property(_get_menu, _set_menu)
