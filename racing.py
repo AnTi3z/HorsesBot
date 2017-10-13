@@ -12,7 +12,6 @@ class Racing:
         self._started = None
         self._racers = None
         self._winners = None
-        self._bets = None
         self._result = None
 
     def new_race(self, user_id=None):
@@ -20,7 +19,6 @@ class Racing:
         self._started = False
         self._racers = []
         self._winners = []
-        self._bets = {}
         self._result = None
 
         self._race_id = db_wrap.new_race(self._tracks_cnt, user_id)
@@ -30,18 +28,13 @@ class Racing:
 
     def set_bet(self, user_id, track, money):
         user_bal = db_wrap.get_money(user_id)
-        self._bets[user_id] = {'track': track, 'money': min(user_bal, money)}
-
-    def _write_bets(self):
-        for user_id in self._bets:
-            db_wrap.set_bet(user_id, self._race_id, self._bets[user_id]['track'], self._bets[user_id]['money'])
+        return db_wrap.set_bet(user_id, self._race_id, track, min(user_bal, money))
 
     def run(self):
         if not self._race_id:
             raise ValueError('Init new race by new_race() first')
 
         if not self._started:
-            self._write_bets()
             self._started = True
 
         if not self._finished:

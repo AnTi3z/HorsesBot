@@ -121,6 +121,7 @@ def set_bet(user_id, race_id, track_num, money):
             INSERT INTO Bets (user_id, track_id, money) SELECT * FROM track_bet''',
                          (user_id, money, race_id, track_num))
             conn.execute('COMMIT TRANSACTION')
+            return True
     except sqlite3.Error:
         logger.info('''BEGIN TRANSACTION;
         PRAGMA foreign_keys=ON;
@@ -130,6 +131,7 @@ def set_bet(user_id, race_id, track_num, money):
         INSERT INTO Bets (user_id, track_id, money) SELECT * FROM track_bet;
         COMMIT TRANSACTION''', user_id, money, race_id, track_num)
         logger.exception('Ставка от %d (money: %d) не принята в БД', user_id, money)
+        return False
 
 
 def set_result(race_id, first_track, second_track, third_track):

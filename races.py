@@ -120,15 +120,14 @@ def init_race(caller):
 
 
 def write_bets():
-    for user_id in users:
-        if users[user_id].track:
-            race.set_bet(user_id, users[user_id].track, users[user_id].bet)
-            try:
-                bot.send_message(user_id, 'Ваша ставка {}💰 на {} бегущего по {}️⃣ дорожке принята.'.format(
-                    users[user_id].bet, race.racers[users[user_id].track-1]['animal'], users[user_id].track
+    for user_id, user_rec in users.items():
+        if user_rec.track:
+            if race.set_bet(user_id, user_rec.track, user_rec.bet):
+                user_rec.put_msg('Ваша ставка {}💰 на {} бегущего по {}️⃣ дорожке принята.'.format(
+                    user_rec.bet, race.racers[user_rec.track-1]['animal'], user_rec.track
                 ))
-            except telebot.apihelper.ApiException:
-                logger.debug('Private messaging to user %d blocked', user_id)
+            else:
+                user_rec.put_msg('Извините, по технической причине Ваша ставка не была принята.')
 
 
 def run_race(msg_id):
