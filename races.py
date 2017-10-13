@@ -46,14 +46,11 @@ def on_bet_msg(msg):
     if check_user(msg.from_user):
         logger.info('New user in DB added(command)')
     try:
-        result_msg = users[msg.from_user.id].set_bet(int(args[0]))
-        bot.send_message(msg.from_user.id, result_msg, parse_mode='Markdown')
+        users[msg.from_user.id].set_bet(int(args[0]))
     except ValueError:
         logger.warning('set_bet error from user: %s args[0]: %s', msg.from_user.first_name, str(args[0]))
     except IndexError:
         logger.warning('set_bet empty value from user: %s', msg.from_user.first_name)
-    except telebot.apihelper.ApiException:
-        logger.debug('Private messaging to user %s blocked', msg.from_user.first_name)
 
 
 @bot.message_handler(func=lambda msg: True)
@@ -154,12 +151,7 @@ def finish_race(msg_id):
     # Обработка race.result
     medal = {1: '🥇', 2: '🥈', 3: '🥉'}
     for i, row in enumerate(race.result):
-        msg = users[row['user_id']].end_race(row)
-        try:
-            bot.send_message(row['user_id'], msg, parse_mode='Markdown')
-            bot.send_message(row['user_id'], users[row['user_id']].status_msg(), parse_mode='Markdown')
-        except telebot.apihelper.ApiException:
-            logger.debug('Private messaging to user %s blocked', row['first_name'])
+        users[row['user_id']].end_race(row)
         if row['place']:
             result_list.append('\n`{}{:<10.10} {:>5}💰`'.format(medal[row['place']], row['first_name'], row['won']))
         else:
@@ -177,6 +169,18 @@ def check_user(new_user):
     if new_user.id not in users:
         users[new_user.id] = user.User(new_user.id)
     return update_user(new_user.id, new_user.username, new_user.first_name, new_user.last_name)
+
+
+def msgs_handler():
+    while 1:
+        for user_id in dict(users):
+            msg = users[user_id].get_msg()
+            if msg:
+                try:
+                    bot.send_message(user_id, msg, parse_mode='Markdown')
+                    time.sleep(0.33)
+                except telebot.apihelper.ApiException:
+                    logger.exception('Error sending msg: %s to user: %d', msg, user_id)
 
 
 def logger_init():
@@ -204,6 +208,7 @@ def logger_init():
 if __name__ == '__main__':
     logger_init()
     logger.info("Animal races bot started")
+    threading.Thread(target=msgs_handler).start()
     show_start_btn()
     while 1:
         try:

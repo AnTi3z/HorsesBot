@@ -1,5 +1,6 @@
 import db_wrap
-from functools import partial
+import queue
+import time
 
 
 class User:
@@ -8,25 +9,26 @@ class User:
         self._user_id = user_id
         self.track = None
         self._menu = None
+        self._last_msg_utc = 0
 
         self._money = db_wrap.get_money(self._user_id)
         self._bet = db_wrap.get_last_bet(self._user_id) or 10
+        self._msg_queue = queue.Queue()
 
-
-    def status_msg(self):
-        return '`Баланс: {:>12}💰`\n`Размер ставки: {:>5}💰`'.format(self._money, self._bet)
+    def send_status_msg(self):
+        self._msg_queue.put('`Баланс: {:>12}💰`\n`Размер ставки: {:>5}💰`'.format(self._money, self._bet))
 
     def end_race(self, result):
         if self.track:
+            self.track = None
+            self._money = db_wrap.get_money(self._user_id)
             if result['place']:
                 medal = {1: '🥇', 2: '🥈', 3: '🥉'}
-                result_text = 'Поздравляю! Ваша ставка заняла {} место.\nВы заработали {}💰'.format(
-                    medal[result['place']], result['won'])
+                self._msg_queue.put('Поздравляю! Ваша ставка заняла {} место.\nВы заработали {}💰'.format(
+                    medal[result['place']], result['won']))
             else:
-                result_text = 'К сожалению, Ваша ставка проиграла.\nВы потеряли {}💰'.format(-result['won'])
-        self.track = None
-        self._money = db_wrap.get_money(self._user_id)
-        return result_text
+                self._msg_queue.put('К сожалению, Ваша ставка проиграла.\nВы потеряли {}💰'.format(-result['won']))
+            self.send_status_msg()
 
     @property
     def user_id(self):
@@ -70,9 +72,19 @@ class User:
             result_text.append('К сожалению, у Вас осталось всего: {}💰.\n'.format(self._money))
 
         result_text.append('Размер ставки установлен {}💰.'.format(self._bet))
+        self._msg_queue.put(''.join(result_text))
 
-        return ''.join(result_text)
 
+    def get_msg(self):
+        now = time.clock()
+        if not self._msg_queue.empty() and (now - self._last_msg_utc) >= 1:
+            self._last_msg_utc = now
+            return self._msg_queue.get()
+        else:
+            return None
+
+    def put_msg(self, msg):
+        self._msg_queue.put(msg)
 
     def _get_menu(self):
         pass
