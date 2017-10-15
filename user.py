@@ -59,39 +59,20 @@ class User:
 
     @property
     def max_bet(self):
-        m_b = int(self._money * 0.1) #, self._money - 1000)
-        if m_b < 10:
-            return min(10, self._money)
-        else:
-            return m_b
+        return max(int(self._money * 0.1), self._money - 1000)
 
     def set_bet(self, val):
         result_text = []
 
-        if self._money > 100:
-            max_bet = int(self._money * 0.1)
-            if val > max_bet:
-                self._bet = max_bet
-                result_text.append('У Вас осталось всего {}💰.\n'
-                                   'Ставка не может превышать 10% имеющейся суммы.\n'.format(self._money))
-            elif val < 10:
-                self._bet = 10
-                result_text.append('Минимальная ставка 10💰.\n')
-            else:
-                self._bet = val
-        elif self._money > 10:
-            if val > 10:
-                self._bet = 10
-                result_text.append('У Вас осталось всего {}💰.\n'
-                                   'Ваших денег хватит только на минимальную ставку 10.\n'.format(self._money))
-            elif val < 10:
-                self._bet = 10
-                result_text.append('Минимальная ставка 10💰.\n')
-            else:
-                self._bet = val
+        if val > self.max_bet:
+            self._bet = self.max_bet
+            result_text.append('У Вас на счету {}💰\n'
+                               'Вы можете поставить максимум {}💰\n'.format(self._money, self.max_bet))
+        elif val < 10:
+            self._bet = 10
+            result_text.append('Минимальная ставка 10💰\n')
         else:
-            self._bet = self._money
-            result_text.append('К сожалению, у Вас осталось всего: {}💰.\n'.format(self._money))
+            self._bet = val
 
         result_text.append('Размер ставки установлен {}💰.'.format(self._bet))
         self._msg_queue.put(''.join(result_text))
