@@ -1,5 +1,6 @@
 from telebot import types
 import logging
+import db_wrap
 
 logger = logging.getLogger('AnimalRaces')
 
@@ -50,7 +51,14 @@ def check_btn(race_user, text):
     # step 0
     elif race_user.menu == 0:
         if 'Статистика' in text:
-            race_user.put_msg('🚧В разработке🚧'.format(race_user.bet), menu=1)
+            stat = db_wrap.get_main_stat()
+            race_user.put_msg('📊Общая статистика\n\n'
+                              '`Всего игроков {:>9}`\n'
+                              '`Всего животных {:>8}`\n'
+                              '`Всего забегов {:>9}`\n'
+                              '`Принято ставок {:>8}`\n'
+                              '`Сумма ставок {:>10}💰`'.format(stat['users'], stat['animals'], stat['races'],
+                                                             stat['bets'], stat['moneys']), menu=1)
         elif 'Статус' in text:
             race_user.put_msg(race_user.status_msg)
         elif 'Ставка' in text:
