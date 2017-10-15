@@ -15,8 +15,10 @@ class User:
         self._bet = db_wrap.get_last_bet(self._user_id) or 10
         self._msg_queue = queue.Queue()
 
-    def send_status_msg(self):
-        self._msg_queue.put('`Баланс: {:>12}💰`\n`Размер ставки: {:>5}💰`'.format(self._money, self._bet))
+    @property
+    def status_msg(self):
+        return '`Баланс: {:>12}💰`\n`Размер ставки: {:>5}💰`\n\n' \
+               '`Макс. ставка: {:>6}💰`'.format(self._money, self._bet, self.max_bet)
 
     def end_race(self, result):
         if self.track:
@@ -39,7 +41,7 @@ class User:
                 if self._bet > self.max_bet:
                     self.set_bet(self.max_bet)
 
-            self.send_status_msg()
+            self.put_msg(self.status_msg)
 
     @property
     def user_id(self):
