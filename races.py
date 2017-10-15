@@ -10,6 +10,7 @@ from db_wrap import update_user
 import racing
 import user
 from config import *
+from markup_kbds import markups, check_btn
 
 
 logger = logging.getLogger('AnimalRaces')
@@ -55,9 +56,11 @@ def on_bet_msg(msg):
 
 @bot.message_handler(func=lambda msg: True)
 def on_any_msg(msg):
-    new_user = msg.from_user
-    if check_user(new_user):
+    user_entity = msg.from_user
+    if check_user(user_entity):
         logger.info('New user in DB added(msg)')
+    if msg.chat.id == user_entity.id:
+        users[user_entity.id] = check_btn(users[user_entity.id], msg.text)
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -168,12 +171,12 @@ def check_user(new_user):
 
 def msgs_handler():
     while 1:
-        for user_id in dict(users):
-            msg = users[user_id].get_msg()
+        for user_id, user_rec in dict(users).items():
+            msg = user_rec.get_msg()
             if msg:
                 try:
-                    bot.send_message(user_id, msg, parse_mode='Markdown')
-                    time.sleep(0.33)
+                    bot.send_message(user_id, msg, parse_mode='Markdown', reply_markup=markups[user_rec.menu])
+                    time.sleep(0.3)
                 except telebot.apihelper.ApiException:
                     logger.exception('Error sending msg: %s to user: %d', msg, user_id)
 
