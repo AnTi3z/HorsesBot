@@ -122,7 +122,8 @@ def write_bets():
     for user_id, user_rec in users.items():
         if user_rec.track:
             if race.set_bet(user_id, user_rec.track, user_rec.bet):
-                user_rec.put_msg('Ваша ставка {}💰 на {} бегущего по {}️⃣ дорожке принята.'.format(
+                user_rec.put_msg('Ваша ставка {}💰 на {} бегущего по {}️⃣ дорожке принята.\n\n'
+                                 '[Наблюдать за гонкой](https://t.me/animal_races)'.format(
                     user_rec.bet, race.racers[user_rec.track-1]['animal'], user_rec.track
                 ))
             else:

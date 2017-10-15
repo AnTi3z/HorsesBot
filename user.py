@@ -18,7 +18,8 @@ class User:
     @property
     def status_msg(self):
         return '`Баланс: {:>12}💰`\n`Размер ставки: {:>5}💰`\n\n' \
-               '`Макс. ставка: {:>6}💰`'.format(self._money, self._bet, self.max_bet)
+               '`Макс. ставка: {:>6}💰`\n\n' \
+               '[Наблюдать за гонкой](https://t.me/animal_races)'.format(self._money, self._bet, self.max_bet)
 
     def end_race(self, result):
         if self.track:
