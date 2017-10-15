@@ -43,15 +43,9 @@ def on_user_joins(msg):
 
 @bot.message_handler(commands=['bet'])
 def on_bet_msg(msg):
-    _, *args = msg.text.split()
     if check_user(msg.from_user):
         logger.info('New user in DB added(command)')
-    try:
-        users[msg.from_user.id].set_bet(int(args[0]))
-    except ValueError:
-        logger.warning('set_bet error from user: %s args[0]: %s', msg.from_user.first_name, str(args[0]))
-    except IndexError:
-        logger.warning('set_bet empty value from user: %s', msg.from_user.first_name)
+    users[msg.from_user.id].put_msg('Размер ставки установлен {}💰'.format(users[msg.from_user.id].bet), menu=2)
 
 
 @bot.message_handler(func=lambda msg: True)
@@ -101,6 +95,7 @@ def show_bets_panel():
                                                callback_data='call_bet_'+str(num)))
     markup.row(btns[0], btns[1], btns[2], btns[3])
     markup.row(btns[4], btns[5], btns[6], btns[7])
+    markup.row(types.InlineKeyboardButton('Ставка💰', url='https://t.me/AnimalsRacingBot'))
     msg = bot.send_message(CHANNEL_ID, 'Выбирайте на кого ставить:', reply_markup=markup)
     return msg.message_id
 
