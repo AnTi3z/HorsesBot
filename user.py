@@ -98,9 +98,12 @@ class User:
         now = time.clock()
         if not self._msg_queue.empty() and (now - self._last_msg_utc) >= 1:
             self._last_msg_utc = now
-            return self._msg_queue.get()
+            next_msg = self._msg_queue.get()
+            if next_msg[1] is not None:
+                self.menu = next_msg[1]
+            return next_msg[0]
         else:
             return None
 
-    def put_msg(self, msg):
-        self._msg_queue.put(msg)
+    def put_msg(self, msg, menu=None):
+        self._msg_queue.put((msg, menu))
