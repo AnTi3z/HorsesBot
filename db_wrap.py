@@ -223,3 +223,25 @@ def get_last_bet(user_id):
                     JOIN Race ON race_id = Race.id WHERE user_id = %d
                     ORDER BY utc_time DESC LIMIT 1''', user_id)
         logger.exception('Ошибка получения из БД последней ставки игрока: %d', user_id)
+
+
+def get_main_stat():
+    result = {}
+    try:
+        with sqlite3.connect(SQLITE_DB_FILE) as conn:
+            logger.sql('SELECT COUNT(*) FROM User')
+            result['users'] = conn.execute('SELECT COUNT(*) FROM User').fetchone()[0]
+            logger.sql('SELECT COUNT(*) FROM Race')
+            result['races'] = conn.execute('SELECT COUNT(*) FROM Race').fetchone()[0]
+            logger.sql('SELECT COUNT(*) FROM Animal')
+            result['animals'] = conn.execute('SELECT COUNT(*) FROM Animal').fetchone()[0]
+            logger.sql('SELECT COUNT(*), SUM(money) FROM Bets')
+            result['bets'], result['moneys'] = conn.execute('SELECT COUNT(*), SUM(money) FROM Bets').fetchone()
+            return result
+    except sqlite3.Error:
+        logger.info('SELECT COUNT(*) FROM User')
+        logger.info('SELECT COUNT(*) FROM Race')
+        logger.info('SELECT COUNT(*) FROM Animal')
+        logger.info('SELECT COUNT(*), SUM(money) FROM Bets')
+        logger.exception('Ошибка получения статистики из БД')
+        return None
