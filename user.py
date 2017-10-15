@@ -4,6 +4,7 @@ import time
 
 
 class User:
+    msgs_queued = 0
 
     def __init__(self, user_id):
         self._user_id = user_id
@@ -88,9 +89,11 @@ class User:
 
         self._last_msg_utc = now
         next_msg = self._msg_queue.get()
+        User.msgs_queued -= 1
         if next_msg[1] is not None:
             self.menu = next_msg[1]
         return next_msg[0]
 
     def put_msg(self, msg, menu=None):
         self._msg_queue.put((msg, menu))
+        User.msgs_queued += 1

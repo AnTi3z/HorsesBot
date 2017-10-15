@@ -167,12 +167,15 @@ def check_user(new_user):
 
 def msgs_handler():
     while 1:
+        if user.User.msgs_queued == 0:
+            time.sleep(0.1)
+            continue
         for user_id, user_rec in dict(users).items():
             msg = user_rec.get_msg()
             if msg:
                 try:
                     bot.send_message(user_id, msg, parse_mode='Markdown', reply_markup=markups[user_rec.menu])
-                    time.sleep(0.3)
+                    time.sleep(0.03)
                 except telebot.apihelper.ApiException:
                     logger.exception('Error sending msg: %s to user: %d', msg, user_id)
 
