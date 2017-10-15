@@ -79,15 +79,18 @@ class User:
         self.put_msg(''.join(result_text))
 
     def get_msg(self):
-        now = time.clock()
-        if not self._msg_queue.empty() and (now - self._last_msg_utc) >= 1:
-            self._last_msg_utc = now
-            next_msg = self._msg_queue.get()
-            if next_msg[1] is not None:
-                self.menu = next_msg[1]
-            return next_msg[0]
-        else:
+        if self._msg_queue.empty():
             return None
+
+        now = time.clock()
+        if (now - self._last_msg_utc) < 0.7:
+            return None
+
+        self._last_msg_utc = now
+        next_msg = self._msg_queue.get()
+        if next_msg[1] is not None:
+            self.menu = next_msg[1]
+        return next_msg[0]
 
     def put_msg(self, msg, menu=None):
         self._msg_queue.put((msg, menu))
