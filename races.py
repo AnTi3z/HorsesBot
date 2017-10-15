@@ -155,7 +155,7 @@ def finish_race(msg_id):
         if row['place']:
             result_list.append('\n`{}{:<10.10} {:>5}💰`'.format(medal[row['place']], row['first_name'], row['won']))
         elif i < 10:
-            result_list.append('\n`   {:<10.10} {:>5}💰`'.format(row['first_name'], row['won']))
+            result_list.append('\n`  {:<10.10} {:>5}💰`'.format(row['first_name'], row['won']))
 
     bot.send_message(CHANNEL_ID, ''.join(result_list), parse_mode='Markdown')
 
