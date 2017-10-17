@@ -29,7 +29,7 @@ def update_user(user_id, user_name, first_name, last_name):
                                 (user_id, user_name, first_name, last_name))
             if curs.rowcount == 0:
                 logger.sql("UPDATE User SET user_name='%s', first_name='%s', last_name='%s' WHERE tlg_id=%d",
-                             user_name, first_name, last_name, user_id)
+                           user_name, first_name, last_name, user_id)
                 conn.execute('UPDATE User SET user_name=?, first_name=?, last_name=? WHERE tlg_id=?',
                              (user_name, first_name, last_name, user_id))
                 # logger.debug('User updated')
@@ -108,29 +108,29 @@ def get_animals(race_id):
 def set_bet(user_id, race_id, track_num, money):
     try:
         with sqlite3.connect(SQLITE_DB_FILE, isolation_level=None) as conn:
-            logger.sql('''BEGIN TRANSACTION;
+            logger.sql('''BEGIN;
             PRAGMA foreign_keys=ON;
             WITH track_bet AS
             (SELECT %d as user_id, id as track_id, %d as money 
             FROM Tracks WHERE race_id = %d AND track = %d)
             INSERT INTO Bets (user_id, track_id, money) SELECT * FROM track_bet;
-            COMMIT TRANSACTION''', user_id, money, race_id, track_num)
-            conn.execute('BEGIN TRANSACTION')
+            COMMIT''', user_id, money, race_id, track_num)
+            conn.execute('BEGIN')
             conn.execute('PRAGMA foreign_keys=ON')
             conn.execute('''WITH track_bet AS
             (SELECT ? as user_id, id as track_id, ? as money FROM Tracks WHERE race_id = ? AND track = ?)
             INSERT INTO Bets (user_id, track_id, money) SELECT * FROM track_bet''',
                          (user_id, money, race_id, track_num))
-            conn.execute('COMMIT TRANSACTION')
+            conn.execute('COMMIT')
             return True
     except sqlite3.Error:
-        logger.info('''BEGIN TRANSACTION;
+        logger.info('''BEGIN;
         PRAGMA foreign_keys=ON;
         WITH track_bet AS
         (SELECT %d as user_id, id as track_id, %d as money 
         FROM Tracks WHERE race_id = %d AND track = %d)
         INSERT INTO Bets (user_id, track_id, money) SELECT * FROM track_bet;
-        COMMIT TRANSACTION''', user_id, money, race_id, track_num)
+        COMMIT''', user_id, money, race_id, track_num)
         logger.exception('Ставка от %d (money: %d) не принята в БД', user_id, money)
         return False
 
@@ -180,7 +180,7 @@ def get_bets_result(race_id):
         with sqlite3.connect(SQLITE_DB_FILE) as conn:
             conn.row_factory = sqlite3.Row
             logger.sql('SELECT * FROM Bets_result WHERE race_id = %d'
-                         'ORDER BY place IS NULL, place, won DESC, money DESC', race_id)
+                       'ORDER BY place IS NULL, place, won DESC, money DESC', race_id)
             return conn.execute('SELECT * FROM Bets_result WHERE race_id = ?'
                                 'ORDER BY place IS NULL, place, won DESC, money DESC',
                                 (race_id,)).fetchall()
@@ -204,7 +204,7 @@ def set_money(user_id, money):
     try:
         with sqlite3.connect(SQLITE_DB_FILE) as conn:
             logger.sql('UPDATE User SET Money = %d WHERE tlg_id = %d', money, user_id)
-            conn.execute('UPDATE User SET Money = ? WHERE tlg_id = ?', (money, user_id,))
+            conn.execute('UPDATE User SET Money = ? WHERE tlg_id = ?', (money, user_id))
     except sqlite3.Error:
         logger.info('UPDATE User SET Money = %d WHERE tlg_id = %d', money, user_id)
         logger.exception('Ошибка записи в БД %d денег игроку: %d', money, user_id)
