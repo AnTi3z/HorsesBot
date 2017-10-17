@@ -1,4 +1,9 @@
 import re
+
+emoji_pattern = re.compile("[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF"
+                               "\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF]+")
+
+
 def str_human_int(x):
     if abs(x) < 10000:
         return '%d' % x
@@ -16,3 +21,28 @@ def str_human_int(x):
         return '{:.2f}{}'.format(x, suffix)
 
 
+def round_int(x):
+    if x <= 10:
+        return x
+    digs = len(str(x))
+    base = x / (10 ** (digs-1))
+    if base < 2.5:
+        return 10 ** (digs-1)
+    elif base < 7.5:
+        return 5 * 10 ** (digs-1)
+    else:
+        return 10 ** digs
+
+
+def int_to_hash(uid):
+    uid = (uid + (uid << 32)) ^ 0xB7E151628AED2A6B
+    return hex(uid)[2:]
+
+
+def hash_to_int(hex_str):
+    xor_id = int(hex_str, 16)
+    return (xor_id ^ 0xB7E151628AED2A6B) >> 32
+
+
+def strip_emoji(text):
+    return emoji_pattern.sub('', text)
