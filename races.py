@@ -172,7 +172,7 @@ def check_user(new_user):
 def msgs_handler():
     while 1:
         if user.User.msgs_queued == 0:
-            time.sleep(0.1)
+            time.sleep(0.03)
             continue
         for user_id, user_rec in dict(users).items():
             msg = user_rec.get_msg()
