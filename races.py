@@ -160,9 +160,10 @@ def finish_race(msg_id):
 
 
 def check_user(new_user):
+    updated = update_user(new_user.id, new_user.username, new_user.first_name, new_user.last_name)
     if new_user.id not in users:
         users[new_user.id] = user.User(new_user.id)
-    return update_user(new_user.id, new_user.username, new_user.first_name, new_user.last_name)
+    return updated
 
 
 def msgs_handler():
