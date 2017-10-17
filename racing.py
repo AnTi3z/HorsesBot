@@ -1,5 +1,6 @@
-import db_wrap
 import random
+
+import db_wrap
 from config import *
 
 

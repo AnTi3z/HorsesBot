@@ -1,16 +1,19 @@
 #!/usr/local/bin/python
 
 import time
+import logging
+import threading
+import requests
+
 import telebot
 from telebot import types
-import logging
-import requests
-import threading
+
 from db_wrap import update_user
 import racing
 import user
 from config import *
 from markup_kbds import markups, check_btn
+from utils import str_human_int, strip_emoji
 
 
 logger = logging.getLogger('AnimalRaces')

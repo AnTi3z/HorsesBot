@@ -1,5 +1,6 @@
 import sqlite3
 import logging
+
 from config import *
 
 logger = logging.getLogger('AnimalRaces')

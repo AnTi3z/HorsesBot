@@ -1,6 +1,10 @@
-import db_wrap
 import queue
 import time
+import logging
+
+import db_wrap
+
+logger = logging.getLogger('AnimalRaces')
 
 
 class User:
