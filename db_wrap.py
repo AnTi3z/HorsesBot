@@ -250,3 +250,14 @@ def get_main_stat():
         logger.info('SELECT COUNT(*), SUM(money) FROM Bets')
         logger.exception('Ошибка получения статистики из БД')
         return None
+
+
+def get_players_stat():
+    try:
+        with sqlite3.connect(SQLITE_DB_FILE) as conn:
+            conn.row_factory = sqlite3.Row
+            logger.sql('SELECT * FROM Players_stat')
+            return conn.execute('SELECT * FROM Players_stat').fetchall()
+    except sqlite3.Error:
+        logger.info('SELECT * FROM Players_stat')
+        logger.exception('Ошибка получения из БД статистики игроков')
