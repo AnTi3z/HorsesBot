@@ -87,7 +87,7 @@ class User:
         if self._msg_queue.empty():
             return None
 
-        now = time.clock()
+        now = time.perf_counter()
         if (now - self._last_msg_utc) < 0.7:
             return None
 
