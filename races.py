@@ -155,9 +155,12 @@ def finish_race(msg_id):
     for i, row in enumerate(race.result):
         users[row['user_id']].end_race(row)
         if row['place']:
-            result_list.append('\n`{}{:<10.10} {:>5}💰`'.format(medal[row['place']], row['first_name'], row['won']))
+            result_list.append('\n`{}{:<12.12} {:>6}💰`'.format(medal[row['place']],
+                                                                    strip_emoji(row['first_name']),
+                                                                    str_human_int(row['won'])))
         elif i < 10:
-            result_list.append('\n`  {:<10.10} {:>5}💰`'.format(row['first_name'], row['won']))
+            result_list.append('\n`🚫{:<12.12} {:>6}💰`'.format(strip_emoji(row['first_name']),
+                                                                    str_human_int(row['won'])))
 
     bot.send_message(CHANNEL_ID, ''.join(result_list), parse_mode='Markdown')
 
