@@ -200,6 +200,21 @@ def get_money(user_id):
         logger.exception('Ошибка получения из БД количества денег игрока: %d', user_id)
 
 
+def get_user_data(user_id):
+    try:
+        with sqlite3.connect(SQLITE_DB_FILE) as conn:
+            conn.row_factory = sqlite3.Row
+            logger.sql('SELECT * FROM User WHERE tlg_id = %d', user_id)
+            result = conn.execute('SELECT * FROM User WHERE tlg_id = ?', (user_id,)).fetchone()
+            if result:
+                return result
+            else:
+                return None
+    except sqlite3.Error:
+        logger.info('SELECT * FROM User WHERE tlg_id = %d', user_id)
+        logger.exception('Ошибка из БД данных игрока: %d', user_id)
+
+
 def set_money(user_id, money):
     try:
         with sqlite3.connect(SQLITE_DB_FILE) as conn:
@@ -208,6 +223,17 @@ def set_money(user_id, money):
     except sqlite3.Error:
         logger.info('UPDATE User SET Money = %d WHERE tlg_id = %d', money, user_id)
         logger.exception('Ошибка записи в БД %d денег игроку: %d', money, user_id)
+
+def set_level_money(user_id, level, money):
+    try:
+        with sqlite3.connect(SQLITE_DB_FILE) as conn:
+            logger.sql('UPDATE User SET level = %d, money = %d WHERE tlg_id = %d', level, money, user_id)
+            conn.execute('UPDATE User SET level = ?, money = ? WHERE tlg_id = ?', (level, money, user_id))
+            return True
+    except sqlite3.Error:
+        logger.info('UPDATE User SET level = %d, money = %d WHERE tlg_id = %d', level, money, user_id)
+        logger.exception('Ошибка записи в БД %d уровня и %d денег игроку: %d', level, money, user_id)
+        return False
 
 
 def get_last_bet(user_id):
