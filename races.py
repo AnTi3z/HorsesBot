@@ -169,6 +169,8 @@ def check_user(new_user):
     updated = update_user(new_user.id, new_user.username, new_user.first_name, new_user.last_name)
     if new_user.id not in users:
         users[new_user.id] = user.User(new_user.id)
+    else:
+        users[new_user.id].first_name = strip_emoji(new_user.first_name)
     return updated
 
 

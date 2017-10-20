@@ -16,7 +16,10 @@ class User:
         self.menu = 0
         self._last_msg_utc = 0
 
-        self._money = db_wrap.get_money(self._user_id)
+        user_data = db_wrap.get_user_data(self._user_id)
+        self.first_name = strip_emoji(user_data['first_name'])
+        self._money = user_data['money']
+        self._level = user_data['level']
         self._bet = db_wrap.get_last_bet(self._user_id) or 10
         self._msg_queue = queue.Queue()
 
