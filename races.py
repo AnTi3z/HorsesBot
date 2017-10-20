@@ -183,7 +183,7 @@ def msgs_handler():
             msg = user_rec.get_msg()
             if msg:
                 try:
-                    bot.send_message(user_id, msg, parse_mode='Markdown', reply_markup=markups[user_rec.menu])
+                    bot.send_message(user_id, msg, parse_mode='Markdown', reply_markup=markup(user_rec))
                     time.sleep(0.03)
                 except telebot.apihelper.ApiException:
                     logger.warning('Ошибка при отправке сообщения пользователю: %s', user_rec.first_name)

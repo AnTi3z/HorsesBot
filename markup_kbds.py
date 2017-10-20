@@ -9,6 +9,10 @@ from config import RULES
 
 logger = logging.getLogger('AnimalRaces')
 
+
+def markup(user_rec):
+    return markups[user_rec.menu]
+
 markups = list()
 
 # step 0
