@@ -3,6 +3,7 @@ import time
 import logging
 
 import db_wrap
+from utils import strip_emoji
 
 logger = logging.getLogger('AnimalRaces')
 
@@ -25,10 +26,16 @@ class User:
 
     @property
     def status_msg(self):
-        return '`Баланс {:>14}💰`\n' \
-               '`Размер ставки {:>7}💰`\n\n' \
-               '`Макс. ставка {:>8}💰`\n\n' \
-               '[Ссылка на забеги](https://t.me/animal_races)'.format(self._money, self._bet, self.max_bet)
+        return ' *{}*\n' \
+               '️Уровень {}⚜️️\n\n' \
+               '`Баланс {:>15}💰`\n' \
+               '`Размер ставки {:>8}💰`\n\n' \
+               '`Макс. ставка  {:>8}💰`\n' \
+               '`Начальный кредит {:>5}💰`\n' \
+               '`След. уровень {:>8}💰`\n\n' \
+               '[Ссылка на забеги](https://t.me/animal_races)'.format(self.first_name, self._level,
+                                                                      self._money, self._bet,
+                                                                      self.max_bet, self.low_limit, self.max_limit)
 
     def end_race(self, result):
         if self.track:
@@ -38,16 +45,14 @@ class User:
                 medal = {1: '🥇', 2: '🥈', 3: '🥉'}
                 self.put_msg('Поздравляю! Ваша ставка заняла {} место.\nВы заработали {}💰'.format(
                     medal[result['place']], result['won']))
+                if self._money >= self.max_limit:
+                    self._level_up()
+                    if self._bet > self.max_bet:
+                        self.set_bet(self.max_bet)
             else:
                 self.put_msg('К сожалению, Ваша ставка проиграла.\nВы потеряли {}💰'.format(-result['won']))
-                if self._money <= 100:
-                    credit = 1000 - self._money
-                    db_wrap.set_money(self._user_id, 1000)
-                    self.put_msg('Невероятнейшим образом Вам удалось спустить почти все ваши деньги на скачках.\n'
-                                 'Приняв предложение распорядителя, от которого Вы не смогли отказаться, '
-                                 'и проведя с ним бурную ночь, Вы получили от него {}💰\n'
-                                 '(Сложилось впечатление, что с Вами это не впервой)'.format(credit))
-                    self._money = db_wrap.get_money(self._user_id)
+                if self._money <= self.low_limit / 10:
+                    self._give_credit()
                 if self._bet > self.max_bet:
                     self.set_bet(self.max_bet)
 
@@ -69,7 +74,40 @@ class User:
 
     @property
     def max_bet(self):
-        return max(int(self._money * 0.1), self._money - 1000)
+        return max(int(self._money * 0.1), self._money - self.low_limit)
+
+    @property
+    def low_limit(self):
+        return 1000 * (self._level * self._level + self._level) // 2
+
+    @property
+    def max_limit(self):
+        return self.low_limit * 20
+
+    def _give_credit(self):
+        logger.debug('Выдача кредита: %s', self.first_name)
+        credit = self.low_limit - self._money
+        if db_wrap.set_money(self._user_id, self.low_limit):
+            self._money = self.low_limit
+            self.put_msg('Невероятнейшим образом Вам удалось спустить почти все ваши деньги на скачках.\n'
+                         'Приняв предложение распорядителя, от которого Вы не смогли отказаться, '
+                         'и проведя с ним бурную ночь, Вы получили от него {}💰\n'
+                         '(Сложилось впечатление, что с Вами это не впервой)'.format(credit))
+        else:
+            logger.error('Ошибка при выдаче кредита: %s', self.first_name)
+
+    def _level_up(self):
+        logger.debug('Повышение уровня: %s', self.first_name)
+        credit = self.low_limit + (self._level+1) * 1000
+        if db_wrap.set_level_money(self._user_id, self._level+1, credit):
+            self._level += 1
+            self._money = self.low_limit
+            self.put_msg('Поздравляем. Вы достигли {} уровня.\n'
+                         'Ваш начальный кредит и максимальная сумма на счете возросли, '
+                         'но Вам за это пришлось расплатиться почти всей имеющейся у Вас '
+                         'наличностью.\n'.format(self._level))
+        else:
+            logger.error('Ошибка повышения уровня игрока: %s', self.first_name)
 
     def set_bet(self, val):
         result_text = []
