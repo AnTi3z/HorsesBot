@@ -5,6 +5,7 @@ from telebot import types
 import db_wrap
 from utils import *
 # from operator import itemgetter
+from config import RULES
 
 logger = logging.getLogger('AnimalRaces')
 
@@ -55,6 +56,14 @@ def check_btn(race_user, text):
             race_user.put_msg(race_user.status_msg)
         elif 'Ставка' in text:
             race_user.put_msg('Размер ставки установлен {}💰'.format(race_user.bet), menu=2)
+        elif 'Пригласить' in text:
+            race_user.put_msg('🚧В разработке🚧')
+        #    race_user.put_msg('Поделившись ссылкой, Вы получите на свой счет сумму '
+        #                      'равную стартовой сумме Вашего текущего уровня (сейчас это {}💰).\n'
+        #                      'Ссылка для приглашения в игру:'.format(race_user.low_limit))
+        #    race_user.put_msg('https://t.me/AnimalsRacingBot?start={}'.format(int_to_hash(race_user.user_id)))
+        elif 'Правила' in text:
+            race_user.put_msg(RULES)
     # step 1 - Статистика (0 - 1)
     elif race_user.menu == 1:
         if 'Личная' in text:
