@@ -111,7 +111,12 @@ def check_btn(race_user, text):
                                                               str_human_int(row['money'])))
             race_user.put_msg(''.join(result))
         elif 'Уровень' in text:
-            race_user.put_msg('🚧В разработке🚧'.format(race_user.bet))
+            stat = db_wrap.get_players_stat()
+            sorted_stat = sorted(stat, key=itemgetter('level', 'money'), reverse=True)[:10]
+            result = ['⚜️Уровень\n\n']
+            for row in sorted_stat:
+                result.append('`{:<16.16}  {:>3}⚜`\n'.format(strip_emoji(row['first_name']), row['level']))
+            race_user.put_msg(''.join(result))
         elif 'Победы' in text:
             stat = db_wrap.get_players_stat()
             sorted_stat = sorted(stat, key=itemgetter('wins'), reverse=True)[:10]
