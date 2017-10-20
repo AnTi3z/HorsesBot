@@ -12,8 +12,8 @@ from db_wrap import update_user
 import racing
 import user
 from config import *
-from markup_kbds import markups, check_btn
-from utils import str_human_int, strip_emoji
+from markup_kbds import markup, check_btn
+from utils import *
 
 
 logger = logging.getLogger('AnimalRaces')
@@ -44,11 +44,27 @@ def on_user_joins(msg):
         logger.info('New user in DB added(join)')
 
 
-@bot.message_handler(commands=['bet'])
-def on_bet_msg(msg):
-    if check_user(msg.from_user):
-        logger.info('New user in DB added(command)')
-    users[msg.from_user.id].put_msg('Размер ставки установлен {}💰'.format(users[msg.from_user.id].bet), menu=2)
+#@bot.message_handler(commands=['bet'])
+#def on_bet_msg(msg):
+#    if check_user(msg.from_user):
+#        logger.info('New user in DB added(command)')
+#    users[msg.from_user.id].put_msg('Размер ставки установлен {}💰'.format(users[msg.from_user.id].bet), menu=2)
+
+
+@bot.message_handler(commands=['start'])
+def on_start_msg(msg):
+    ref = msg.text.split()[1] if len(msg.text.split()) > 1 else None
+    if ref:
+        try:
+            ref_id = int(ref)
+        except ValueError:
+            # Записать msg.from_user.id - ref в таблицу Referral_ext
+            pass
+        else:
+            # Записать msg.from_user.id - ref_id в таблицу Referral_user
+            # Выдать денег ref_id
+            pass
+        logger.debug('User %d have been invited by %d', msg.from_user.id, ref)
 
 
 @bot.message_handler(func=lambda msg: True)
