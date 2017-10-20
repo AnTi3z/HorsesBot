@@ -5,6 +5,11 @@ emoji_pattern = re.compile("[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF"
 
 
 def str_human_int(x):
+    try:
+        int(x)
+    except ValueError:
+        return None
+
     if abs(x) < 10000:
         return '%d' % x
     i = 0
