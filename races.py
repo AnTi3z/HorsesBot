@@ -127,8 +127,8 @@ def write_bets():
             if race.set_bet(user_id, user_rec.track, user_rec.bet):
                 user_rec.put_msg('Ваша ставка {}💰 на {} бегущего по {}️⃣ дорожке принята.\n\n'
                                  '[Наблюдать за гонкой](https://t.me/animal_races)'.format(
-                    user_rec.bet, race.racers[user_rec.track-1]['animal'], user_rec.track
-                ))
+                    user_rec.bet, race.racers[user_rec.track-1]['animal'], user_rec.track)
+                )
             else:
                 user_rec.put_msg('Извините, по технической причине Ваша ставка не была принята.')
 
@@ -156,11 +156,11 @@ def finish_race(msg_id):
         users[row['user_id']].end_race(row)
         if row['place']:
             result_list.append('\n`{}{:<12.12} {:>6}💰`'.format(medal[row['place']],
-                                                                    strip_emoji(row['first_name']),
-                                                                    str_human_int(row['won'])))
+                                                                strip_emoji(row['first_name']),
+                                                                str_human_int(row['won'])))
         elif i < 10:
             result_list.append('\n`🚫{:<12.12} {:>6}💰`'.format(strip_emoji(row['first_name']),
-                                                                    str_human_int(row['won'])))
+                                                                str_human_int(row['won'])))
 
     bot.send_message(CHANNEL_ID, ''.join(result_list), parse_mode='Markdown')
 

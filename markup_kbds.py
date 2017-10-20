@@ -12,68 +12,35 @@ markups = list()
 
 # step 0
 markups.append(types.ReplyKeyboardMarkup(resize_keyboard=True))
-markups[0].row(
-    types.KeyboardButton('📊Статистика'),
-    types.KeyboardButton('📜Статус'),
-    types.KeyboardButton('💰Ставка')
-)
+markups[0].row(types.KeyboardButton('📊Статистика'), types.KeyboardButton('📜Статус'), types.KeyboardButton('💰Ставка'))
+markups[0].row(types.KeyboardButton('🔖Пригласить'), types.KeyboardButton('ℹ️Правила'))
 
 # step 1 - Статистика
 markups.append(types.ReplyKeyboardMarkup(resize_keyboard=True))
-markups[1].row(
-    types.KeyboardButton('👤Личная'),
-    types.KeyboardButton('👥Игроки'),
-    types.KeyboardButton('🐎Животные')
-)
-markups[1].row(
-    types.KeyboardButton('⬅️Назад'),
-    types.KeyboardButton('⬆️Наверх'),
-)
+markups[1].row(types.KeyboardButton('👤Личная'), types.KeyboardButton('👥Игроки'), types.KeyboardButton('🐎Животные'))
+markups[1].row( types.KeyboardButton('⬅️Назад'), types.KeyboardButton('⬆️Наверх'))
 
 # step 2 - Ставка
 markups.append(types.ReplyKeyboardMarkup(resize_keyboard=True))
-markups[2].row(
-    types.KeyboardButton('➕'),
-    types.KeyboardButton('➕➕'),
-    types.KeyboardButton('Макс.')
-)
-markups[2].row(
-    types.KeyboardButton('➖'),
-    types.KeyboardButton('➖➖'),
-    types.KeyboardButton('Мин.')
-)
-markups[2].row(
-    types.KeyboardButton('⬅️Назад'),
-    types.KeyboardButton('⬆️Наверх'),
-)
+markups[2].row(types.KeyboardButton('➕'), types.KeyboardButton('➕➕'), types.KeyboardButton('Макс.'))
+markups[2].row(types.KeyboardButton('➖'), types.KeyboardButton('➖➖'), types.KeyboardButton('Мин.'))
+markups[2].row(types.KeyboardButton('⬅️Назад'), types.KeyboardButton('⬆️Наверх'))
 
 # step 3 - Статистика - Личная
 markups.append(types.ReplyKeyboardMarkup(resize_keyboard=True))
-markups[3].row(
-    types.KeyboardButton(''),
-    types.KeyboardButton(''),
-    types.KeyboardButton('')
-)
-markups[3].row(
-    types.KeyboardButton('⬅️Назад'),
-    types.KeyboardButton('⬆️Наверх'),
-)
+markups[3].row(types.KeyboardButton(''), types.KeyboardButton(''), types.KeyboardButton(''))
+markups[3].row(types.KeyboardButton('⬅️Назад'), types.KeyboardButton('⬆️Наверх'))
 
 # step 4 - Статистика - Игроки
 markups.append(types.ReplyKeyboardMarkup(resize_keyboard=True))
-markups[4].row(
-    types.KeyboardButton('💰Золото'),
-    types.KeyboardButton('⚜️Уровень')
-)
-markups[4].row(
-    types.KeyboardButton('🏆Победы'),
-    types.KeyboardButton('🥇🥈🥉Медали'),
-    types.KeyboardButton('💰Ставки')
-)
-markups[4].row(
-    types.KeyboardButton('⬅️Назад'),
-    types.KeyboardButton('⬆️Наверх'),
-)
+markups[4].row(types.KeyboardButton('💰Золото'), types.KeyboardButton('⚜️Уровень'))
+markups[4].row(types.KeyboardButton('💰Ставки'), types.KeyboardButton('🥇🥈🥉Медали'), types.KeyboardButton('🏆Победы'))
+markups[4].row(types.KeyboardButton('⬅️Назад'), types.KeyboardButton('⬆️Наверх'))
+
+# step 5 - Статистика - Животные
+markups.append(types.ReplyKeyboardMarkup(resize_keyboard=True))
+markups[5].row(types.KeyboardButton(''), types.KeyboardButton(''), types.KeyboardButton(''))
+markups[5].row(types.KeyboardButton('⬅️Назад'), types.KeyboardButton('⬆️Наверх'))
 
 
 def check_btn(race_user, text):
@@ -138,7 +105,7 @@ def check_btn(race_user, text):
             result = ['🏆Победы\n\n']
             for row in sorted_stat:
                 result.append('`{:<14.14}  {:>4}/{}`\n'.format(strip_emoji(row['first_name']),
-                                                              row['wins'], row['bets_cnt']))
+                                                               row['wins'], row['bets_cnt']))
             race_user.put_msg(''.join(result))
         elif 'Медали' in text:
             stat = db_wrap.get_players_stat()
@@ -146,7 +113,7 @@ def check_btn(race_user, text):
             result = ['🥇🥈🥉Медали\n\n']
             for row in sorted_stat:
                 result.append('`{:<14.14}  {:>4}/{}`\n'.format(strip_emoji(row['first_name']),
-                                                            row['prizes'], row['bets_cnt']))
+                                                               row['prizes'], row['bets_cnt']))
             race_user.put_msg(''.join(result))
         elif 'Ставки' in text:
             stat = db_wrap.get_players_stat()
@@ -170,10 +137,9 @@ def menu_0_1(race_user):
                       '`Всего забегов {:>8}`\n'
                       '`Принято ставок {:>7}`\n'
                       '`Сумма ставок {:>9}💰`'.format(stat['users'], stat['animals'],
-                                                       str_human_int(stat['races']),
-                                                       str_human_int(stat['bets']),
-                                                       str_human_int(stat['moneys'])), menu=1)
-    return race_user
+                                                      str_human_int(stat['races']),
+                                                      str_human_int(stat['bets']),
+                                                      str_human_int(stat['moneys'])), menu=1)
 
 
 def menu_0_2(race_user):
