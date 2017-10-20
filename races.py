@@ -186,7 +186,7 @@ def msgs_handler():
                     bot.send_message(user_id, msg, parse_mode='Markdown', reply_markup=markups[user_rec.menu])
                     time.sleep(0.03)
                 except telebot.apihelper.ApiException:
-                    logger.exception('Error sending msg: %s to user: %d', msg, user_id)
+                    logger.warning('Ошибка при отправке сообщения пользователю: %s', user_rec.first_name)
 
 
 def logger_init():
