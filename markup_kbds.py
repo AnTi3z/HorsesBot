@@ -71,11 +71,11 @@ def check_btn(race_user, text):
     # step 1 - Статистика (0 - 1)
     elif race_user.menu == 1:
         if 'Личная' in text:
-            race_user.put_msg('🚧В разработке🚧'.format(race_user.bet))
+            race_user.put_msg('🚧В разработке🚧')
         elif 'Игроки' in text:
-            race_user.put_msg('👥Рейтинги игроков'.format(race_user.bet), menu=4)
+            race_user.put_msg('👥Рейтинги игроков', menu=4)
         elif 'Животные' in text:
-            race_user.put_msg('🚧В разработке🚧'.format(race_user.bet))
+            race_user.put_msg('🚧В разработке🚧')
         elif 'Назад' in text:
             menu_0(race_user)
     # step 2 - Ставка (0 - 2)
@@ -135,7 +135,7 @@ def check_btn(race_user, text):
             race_user.put_msg(''.join(result))
         elif 'Ставки' in text:
             stat = db_wrap.get_players_stat()
-            race_user.put_msg('🚧В разработке🚧'.format(race_user.bet))
+            race_user.put_msg('🚧В разработке🚧')
         elif 'Назад' in text:
             menu_0_1(race_user)
 
