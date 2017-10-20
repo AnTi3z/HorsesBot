@@ -81,11 +81,11 @@ def check_btn(race_user, text):
     # step 2 - Ставка (0 - 2)
     elif race_user.menu == 2:
         if '➕' == text:
-            race_user.set_bet(race_user.bet + int(round_int(int(race_user.money * 0.1))/5))
+            race_user.set_bet(race_user.bet + round_int(int(race_user.money * 0.1)) // 5)
         elif '➕➕' == text:
             race_user.set_bet(race_user.bet + round_int(int(race_user.money * 0.1)))
         elif '➖' == text:
-            race_user.set_bet(race_user.bet - int(round_int(int(race_user.money * 0.1))/5))
+            race_user.set_bet(race_user.bet - round_int(int(race_user.money * 0.1)) // 5)
         elif '➖➖' == text:
             race_user.set_bet(race_user.bet - round_int(int(race_user.money * 0.1)))
         elif 'Мин' in text:
