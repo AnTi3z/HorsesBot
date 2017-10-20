@@ -99,7 +99,7 @@ def check_btn(race_user, text):
                 bet = int(text)
                 race_user.set_bet(bet)
             except:
-                logger.warning('Пользователь {} в качестве ставки ввел: {}'.format(race_user.user_id, text))
+                logger.warning('Пользователь {} в качестве ставки ввел: {}'.format(race_user.firs_name, text))
     # step 4 - Статистика - Игроки (0 - 1 - 4)
     elif race_user.menu == 4:
         if 'Золото' in text:
