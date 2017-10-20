@@ -57,7 +57,7 @@ def on_any_msg(msg):
     if check_user(user_entity):
         logger.info('New user in DB added(msg)')
     if msg.chat.id == user_entity.id:
-        users[user_entity.id] = check_btn(users[user_entity.id], msg.text)
+        check_btn(users[user_entity.id], msg.text)
 
 
 @bot.callback_query_handler(func=lambda call: True)

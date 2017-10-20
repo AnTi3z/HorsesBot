@@ -45,12 +45,12 @@ markups[5].row(types.KeyboardButton('⬅️Назад'), types.KeyboardButton('�
 
 def check_btn(race_user, text):
     if 'Наверх' in text:
-        race_user = menu_0(race_user)
+        menu_0(race_user)
 
     # step 0
     elif race_user.menu == 0:
         if 'Статистика' in text:
-            race_user = menu_0_1(race_user)
+            menu_0_1(race_user)
         elif 'Статус' in text:
             race_user.put_msg(race_user.status_msg)
         elif 'Ставка' in text:
@@ -64,7 +64,7 @@ def check_btn(race_user, text):
         elif 'Животные' in text:
             race_user.put_msg('🚧В разработке🚧'.format(race_user.bet))
         elif 'Назад' in text:
-            race_user = menu_0(race_user)
+            menu_0(race_user)
     # step 2 - Ставка (0 - 2)
     elif race_user.menu == 2:
         if '➕' == text:
@@ -80,7 +80,7 @@ def check_btn(race_user, text):
         elif 'Макс' in text:
             race_user.set_bet(race_user.max_bet)
         elif 'Назад' in text:
-            race_user = menu_0(race_user)
+            menu_0(race_user)
         else:
             try:
                 bet = int(text)
@@ -119,14 +119,11 @@ def check_btn(race_user, text):
             stat = db_wrap.get_players_stat()
             race_user.put_msg('🚧В разработке🚧'.format(race_user.bet))
         elif 'Назад' in text:
-            race_user = menu_0_1(race_user)
-
-    return race_user
+            menu_0_1(race_user)
 
 
 def menu_0(race_user):
     race_user.put_msg(race_user.status_msg, menu=0)
-    return race_user
 
 
 def menu_0_1(race_user):
@@ -143,8 +140,8 @@ def menu_0_1(race_user):
 
 
 def menu_0_2(race_user):
-    return race_user
+    pass
 
 
 def menu_0_1_4(race_user):
-    return race_user
+    pass
