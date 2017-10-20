@@ -1,10 +1,10 @@
 import logging
+from operator import itemgetter
 
 from telebot import types
 
 import db_wrap
 from utils import *
-# from operator import itemgetter
 from config import RULES
 
 logger = logging.getLogger('AnimalRaces')
@@ -104,7 +104,7 @@ def check_btn(race_user, text):
     elif race_user.menu == 4:
         if 'Золото' in text:
             stat = db_wrap.get_players_stat()
-            sorted_stat = sorted(stat, key=lambda x: x['money'], reverse=True)[:10]
+            sorted_stat = sorted(stat, key=itemgetter('money'), reverse=True)[:10]
             result = ['💰Золото\n\n']
             for row in sorted_stat:
                 result.append('`{:<14.14}  {:>5}💰`\n'.format(strip_emoji(row['first_name']),
@@ -114,7 +114,7 @@ def check_btn(race_user, text):
             race_user.put_msg('🚧В разработке🚧'.format(race_user.bet))
         elif 'Победы' in text:
             stat = db_wrap.get_players_stat()
-            sorted_stat = sorted(stat, key=lambda x: x['wins'], reverse=True)[:10]
+            sorted_stat = sorted(stat, key=itemgetter('wins'), reverse=True)[:10]
             result = ['🏆Победы\n\n']
             for row in sorted_stat:
                 result.append('`{:<14.14}  {:>4}/{}`\n'.format(strip_emoji(row['first_name']),
@@ -122,7 +122,7 @@ def check_btn(race_user, text):
             race_user.put_msg(''.join(result))
         elif 'Медали' in text:
             stat = db_wrap.get_players_stat()
-            sorted_stat = sorted(stat, key=lambda x: x['prizes'], reverse=True)[:10]
+            sorted_stat = sorted(stat, key=itemgetter('prizes'), reverse=True)[:10]
             result = ['🥇🥈🥉Медали\n\n']
             for row in sorted_stat:
                 result.append('`{:<14.14}  {:>4}/{}`\n'.format(strip_emoji(row['first_name']),
