@@ -231,25 +231,29 @@ def get_last_bet(user_id):
 
 
 def get_main_stat():
-    result = {}
     try:
         with sqlite3.connect(SQLITE_DB_FILE) as conn:
-            logger.sql('SELECT COUNT(*) FROM User')
-            result['users'] = conn.execute('SELECT COUNT(*) FROM User').fetchone()[0]
-            logger.sql('SELECT COUNT(*) FROM Race')
-            result['races'] = conn.execute('SELECT COUNT(*) FROM Race').fetchone()[0]
-            logger.sql('SELECT COUNT(*) FROM Animal')
-            result['animals'] = conn.execute('SELECT COUNT(*) FROM Animal').fetchone()[0]
-            logger.sql('SELECT COUNT(*), SUM(money) FROM Bets')
-            result['bets'], result['moneys'] = conn.execute('SELECT COUNT(*), SUM(money) FROM Bets').fetchone()
-            return result
+            conn.row_factory = sqlite3.Row
+            logger.sql('SELECT '
+                       '(SELECT COUNT(*) FROM User) as users,'
+                       '(SELECT COUNT(*) FROM Race) as races,'
+                       '(SELECT COUNT(*) FROM Animal) as animals,'
+                       '(SELECT COUNT(*) FROM Bets) as bets,'
+                       '(SELECT SUM(money) FROM Bets) as moneys')
+            return conn.execute('SELECT'
+                                '(SELECT COUNT(*) FROM User) as users,'
+                                '(SELECT COUNT(*) FROM Race) as races,'
+                                '(SELECT COUNT(*) FROM Animal) as animals,'
+                                '(SELECT COUNT(*) FROM Bets) as bets,'
+                                '(SELECT SUM(money) FROM Bets) as moneys').fetchone()
     except sqlite3.Error:
-        logger.info('SELECT COUNT(*) FROM User')
-        logger.info('SELECT COUNT(*) FROM Race')
-        logger.info('SELECT COUNT(*) FROM Animal')
-        logger.info('SELECT COUNT(*), SUM(money) FROM Bets')
+        logger.info('SELECT '
+                    '(SELECT COUNT(*) FROM User) as users,'
+                    '(SELECT COUNT(*) FROM Race) as races,'
+                    '(SELECT COUNT(*) FROM Animal) as animals,'
+                    '(SELECT COUNT(*) FROM Bets) as bets,'
+                    '(SELECT SUM(money) FROM Bets) as moneys')
         logger.exception('Ошибка получения статистики из БД')
-        return None
 
 
 def get_players_stat():
