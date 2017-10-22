@@ -8,6 +8,7 @@ class Racing:
     def __init__(self, tracks_cnt=TRACKS_NUM, race_len=RACE_LEN):
         self._tracks_cnt = tracks_cnt
         self._race_len = race_len
+        self._race_width = race_len
         self._race_id = None
         self._finished = None
         self._started = None
@@ -68,7 +69,7 @@ class Racing:
             animal = self._racers[racer_num]['animal']
             if position < self._race_len:
                 racer_row = '`🏁{}{}{}|{}️⃣`'.format(
-                    '-' * (self._race_len - position), animal, '-' * position, racer_num + 1
+                    '-' * (self._race_width - position), animal, '-' * position, racer_num + 1
                 )
             else:
                 if racer_num == self._winners[0]:
@@ -79,7 +80,7 @@ class Racing:
                     prize = '🥉'
                 else:
                     prize = '🏁'
-                racer_row = '`{}{}{}|{}️⃣`'.format(prize, animal, '-' * self._race_len, racer_num + 1)
+                racer_row = '`{}{}{}|{}️⃣`'.format(prize, animal, '-' * self._race_width, racer_num + 1)
             result_text.append(racer_row)
 
         return '\n'.join(result_text)
