@@ -185,8 +185,7 @@ def menu_0_1(race_user):
                       '`Всего забегов {:>8}`\n'
                       '`Принято ставок {:>7}`\n'
                       '`Сумма ставок {:>9}💰`'.format(stat['users'], stat['animals'],
-                                                      str_human_int(stat['races']),
-                                                      str_human_int(stat['bets']),
+                                                      str_human_int(stat['races']), str_human_int(stat['bets']),
                                                       str_human_int(stat['moneys'])), menu=1)
 
 

@@ -88,13 +88,14 @@ def callback_inline(call):
         threading.Thread(target=do_race, args=(race_msg_id,)).start()
     elif 'call_bet_' in call.data:
         user_id = call.from_user.id
-        users[user_id].track = int(call.data[9:])+1
+        track = int(call.data[9:])+1
+        users[user_id].track = track
         bot.answer_callback_query(call.id, '{}💰 на {} по {}️⃣ дорожке.'.format(
             users[user_id].bet,
             race.racers[users[user_id].track - 1]['animal'],
             users[user_id].track
         ))
-        logger.debug('{} bets on {}'.format(call.from_user.first_name, int(call.data[9:])+1))
+        logger.debug('{} bets on {}'.format(call.from_user.first_name, track))
     elif 'call_stat_' in call.data:
         params = call.data.split('_')[2:]
         user_id = call.from_user.id
@@ -107,7 +108,7 @@ def callback_inline(call):
 
 def show_start_btn():
     global start_btn_clicked
-    markup = types.InlineKeyboardMarkup(row_width=2)
+    markup = types.InlineKeyboardMarkup()
     start_btn = types.InlineKeyboardButton('СТАРТ!', callback_data='call_start')
     markup.add(start_btn)
     bot.send_message(CHANNEL_ID, 'Начать новый забег?', reply_markup=markup)
@@ -115,7 +116,7 @@ def show_start_btn():
 
 
 def show_bets_panel():
-    markup = types.InlineKeyboardMarkup(row_width=4)
+    markup = types.InlineKeyboardMarkup()
     btns = []
     for num in range(race.tracks_cnt):
         btns.append(types.InlineKeyboardButton(str(num+1) + ' - ' + race.racers[num]['animal'],
