@@ -6,6 +6,7 @@ from telebot import types
 import db_wrap
 from utils import *
 from config import RULES
+from ratings import *
 
 logger = logging.getLogger('AnimalRaces')
 
@@ -59,6 +60,32 @@ def get_reply_markup(user_rec):
         return markup
     else:
         return markups[user_rec.menu]
+
+
+def inline_btn_handler(user_id, params):
+    if params[0] == 'players':
+        if params[1] == 'wins':
+            if params[2] == 'rate':
+                sort_rate = True
+            else:
+                sort_rate = False
+            text = players_wins(user_id, sort_rate)
+            return text, markups[6]
+        elif params[1] == 'prizes':
+            if params[2] == 'rate':
+                sort_rate = True
+            else:
+                sort_rate = False
+            text = players_prizes(user_id, sort_rate)
+            return text, markups[7]
+        elif params[1] == 'bets':
+            if params[2] == 'sum':
+                sort_sum = True
+            else:
+                sort_sum = False
+            text = players_bets(user_id, sort_sum)
+            return text, markups[8]
+
 
 def check_btn(race_user, text):
     if 'Наверх' in text:
