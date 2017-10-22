@@ -10,9 +10,6 @@ from config import RULES
 logger = logging.getLogger('AnimalRaces')
 
 
-def markup(user_rec):
-    return markups[user_rec.menu]
-
 markups = list()
 
 # step 0
@@ -47,6 +44,21 @@ markups.append(types.ReplyKeyboardMarkup(resize_keyboard=True))
 markups[5].row(types.KeyboardButton(''), types.KeyboardButton(''), types.KeyboardButton(''))
 markups[5].row(types.KeyboardButton('⬅️Назад'), types.KeyboardButton('⬆️Наверх'))
 
+def get_reply_markup(user_rec):
+    if user_rec.menu == 2:
+        hi_step = round_int(int(user_rec.money * 0.1))
+        low_step = hi_step // 10
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        markup.row(types.KeyboardButton('➕ {}💰'.format(low_step)),
+                   types.KeyboardButton('➕➕ {}💰'.format(hi_step)),
+                   types.KeyboardButton('Макс.({}💰)'.format(user_rec.max_bet)))
+        markup.row(types.KeyboardButton('➖ {}💰'.format(low_step)),
+                   types.KeyboardButton('➖➖ {}💰'.format(hi_step)),
+                   types.KeyboardButton('Мин.(10💰)'))
+        markup.row(types.KeyboardButton('⬅️Назад'), types.KeyboardButton('⬆️Наверх'))
+        return markup
+    else:
+        return markups[user_rec.menu]
 
 def check_btn(race_user, text):
     if 'Наверх' in text:
