@@ -12,7 +12,7 @@ from db_wrap import update_user
 import racing
 import user
 from config import *
-from markup_kbds import markup, check_btn
+from markup_kbds import get_reply_markup, check_btn, inline_btn_handler
 from utils import *
 
 
@@ -95,6 +95,14 @@ def callback_inline(call):
             users[user_id].track
         ))
         logger.debug('{} bets on {}'.format(call.from_user.first_name, int(call.data[9:])+1))
+    elif 'call_stat_' in call.data:
+        params = call.data.split('_')[2:]
+        user_id = call.from_user.id
+        answer = inline_btn_handler(user_id, params)
+        if answer:
+            bot.edit_message_text(answer[0], chat_id=user_id, message_id=call.message.message_id,
+                                  parse_mode='Markdown', reply_markup=answer[1])
+        bot.answer_callback_query(call.id)
 
 
 def show_start_btn():

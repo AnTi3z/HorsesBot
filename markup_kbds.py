@@ -1,10 +1,7 @@
 import logging
-from operator import itemgetter
 
 from telebot import types
 
-import db_wrap
-from utils import *
 from config import RULES
 from ratings import *
 
@@ -158,41 +155,20 @@ def check_btn(race_user, text):
             except:
                 logger.warning('Пользователь {} в качестве ставки ввел: {}'.format(race_user.first_name, text))
     # step 4 - Статистика - Игроки (0 - 1 - 4)
-    elif race_user.menu == 4:
+    # step 6 - Статистика - Игроки - Победы(0 - 1 - 4 - 6)
+    # step 7 - Статистика - Игроки - Медали(0 - 1 - 4 - 7)
+    # step 8 - Статистика - Игроки - Ставки(0 - 1 - 4 - 8)
+    elif race_user.menu in (4, 6, 7, 8):
         if 'Золото' in text:
-            stat = db_wrap.get_players_stat()
-            sorted_stat = sorted(stat, key=itemgetter('money'), reverse=True)[:10]
-            result = ['💰Золото\n\n']
-            for row in sorted_stat:
-                result.append('`{:<14.14}  {:>5}💰`\n'.format(strip_emoji(row['first_name']),
-                                                              str_human_int(row['money'])))
-            race_user.put_msg(''.join(result))
+            race_user.put_msg(players_gold(race_user.user_id), menu=4)
         elif 'Уровень' in text:
-            stat = db_wrap.get_players_stat()
-            sorted_stat = sorted(stat, key=itemgetter('level', 'money'), reverse=True)[:10]
-            result = ['⚜️Уровень\n\n']
-            for row in sorted_stat:
-                result.append('`{:<16.16}  {:>3}⚜`\n'.format(strip_emoji(row['first_name']), row['level']))
-            race_user.put_msg(''.join(result))
+            race_user.put_msg(players_level(race_user.user_id), menu=4)
         elif 'Победы' in text:
-            stat = db_wrap.get_players_stat()
-            sorted_stat = sorted(stat, key=itemgetter('wins'), reverse=True)[:10]
-            result = ['🏆Победы\n\n']
-            for row in sorted_stat:
-                result.append('`{:<14.14}  {:>4}/{}`\n'.format(strip_emoji(row['first_name']),
-                                                               row['wins'], row['bets_cnt']))
-            race_user.put_msg(''.join(result))
+            race_user.put_msg(players_wins(race_user.user_id), menu=6)
         elif 'Медали' in text:
-            stat = db_wrap.get_players_stat()
-            sorted_stat = sorted(stat, key=itemgetter('prizes'), reverse=True)[:10]
-            result = ['🥇🥈🥉Медали\n\n']
-            for row in sorted_stat:
-                result.append('`{:<14.14}  {:>4}/{}`\n'.format(strip_emoji(row['first_name']),
-                                                               row['prizes'], row['bets_cnt']))
-            race_user.put_msg(''.join(result))
+            race_user.put_msg(players_prizes(race_user.user_id), menu=7)
         elif 'Ставки' in text:
-            stat = db_wrap.get_players_stat()
-            race_user.put_msg('🚧В разработке🚧')
+            race_user.put_msg(players_bets(race_user.user_id), menu=8)
         elif 'Назад' in text:
             menu_0_1(race_user)
 
