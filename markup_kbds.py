@@ -45,6 +45,22 @@ markups.append(types.ReplyKeyboardMarkup(resize_keyboard=True))
 markups[5].row(types.KeyboardButton(''), types.KeyboardButton(''), types.KeyboardButton(''))
 markups[5].row(types.KeyboardButton('⬅️Назад'), types.KeyboardButton('⬆️Наверх'))
 
+# step 6 - Статистика - Игроки - Победы (inline keyboard)
+markups.append(types.InlineKeyboardMarkup())
+markups[6].row(types.InlineKeyboardButton('#', callback_data='call_stat_players_wins_abs'),
+               types.InlineKeyboardButton('%', callback_data='call_stat_players_wins_rate'))
+
+# step 7 - Статистика - Игроки - Медали (inline keyboard)
+markups.append(types.InlineKeyboardMarkup())
+markups[7].row(types.InlineKeyboardButton('#', callback_data='call_stat_players_prizes_abs'),
+               types.InlineKeyboardButton('%', callback_data='call_stat_players_prizes_rate'))
+
+# step 8 - Статистика - Игроки - Ставки (inline keyboard)
+markups.append(types.InlineKeyboardMarkup())
+markups[8].row(types.InlineKeyboardButton('#', callback_data='call_stat_players_bets_cnt'),
+               types.InlineKeyboardButton('сумма💰', callback_data='call_stat_players_bets_sum'))
+
+
 def get_reply_markup(user_rec):
     if user_rec.menu == 2:
         hi_step = round_int(int(user_rec.money * 0.1))
