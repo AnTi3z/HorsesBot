@@ -117,7 +117,7 @@ def check_btn(race_user, text):
         #    race_user.put_msg('Поделившись ссылкой, Вы получите на свой счет сумму '
         #                      'равную стартовой сумме Вашего текущего уровня (сейчас это {}💰).\n'
         #                      'Ссылка для приглашения в игру:'.format(race_user.low_limit))
-        #    race_user.put_msg('https://t.me/AnimalsRacingBot?start={}'.format(int_to_hash(race_user.user_id)))
+        #    race_user.put_msg('https://t.me/AnimalsRacingBot?start={}'.format(race_user.user_id))
         elif 'Правила' in text:
             race_user.put_msg(RULES)
     # step 1 - Статистика (0 - 1)
