@@ -71,6 +71,10 @@ def get_reply_markup(user_rec):
                    types.KeyboardButton('Мин.(10💰)'))
         markup.row(types.KeyboardButton('⬅️Назад'), types.KeyboardButton('⬆️Наверх'))
         return markup
+    elif user_rec.menu in (6, 7, 8):
+        menu = user_rec.menu
+        user_rec.menu = 4
+        return markups[menu]
     else:
         return markups[user_rec.menu]
 
