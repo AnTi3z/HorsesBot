@@ -8,7 +8,7 @@ import requests
 import telebot
 from telebot import types
 
-from db_wrap import update_user
+from db_wrap import update_user, get_user_data
 import racing
 import user
 from config import *
@@ -53,18 +53,25 @@ def on_user_joins(msg):
 
 @bot.message_handler(commands=['start'])
 def on_start_msg(msg):
-    ref = msg.text.split()[1] if len(msg.text.split()) > 1 else None
-    if ref:
-        try:
-            ref_id = int(ref)
-        except ValueError:
-            # Записать msg.from_user.id - ref в таблицу Referral_ext
-            pass
-        else:
-            # Записать msg.from_user.id - ref_id в таблицу Referral_user
-            # Выдать денег ref_id
-            pass
-        logger.debug('User %d have been invited by %d', msg.from_user.id, ref)
+    if check_user(msg.from_user.id):
+        ref = msg.text.split()[1] if len(msg.text.split()) > 1 else None
+        if ref:
+            try:
+                ref_id = int(ref)
+            except ValueError:
+                # Записать msg.from_user.id - ref в таблицу Referral_ext
+                # set_referral_ext(msg.from_user.id, ref)
+                pass
+            else:
+                # ref_user_data = get_user_data(ref_id)
+                # if ref_user_data:
+                #     set_referral_user(msg.from_user.id, ref_id)
+                #     ref_user = users[ref_id] or user.User(ref_id)
+                #     ref_user.set_money(ref_user.money + ref_user.low_limit)
+                # else:
+                #     set_referral_ext(msg.from_user.id, ref)
+                pass
+            logger.debug('User %d have been invited by %s', msg.from_user.id, ref)
 
 
 @bot.message_handler(func=lambda msg: True)

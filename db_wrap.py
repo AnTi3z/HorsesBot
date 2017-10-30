@@ -294,3 +294,18 @@ def get_players_stat():
     except sqlite3.Error:
         logger.info('SELECT * FROM Players_stat')
         logger.exception('Ошибка получения из БД статистики игроков')
+
+
+def set_referral_user(user_id, ref_id):
+    try:
+        with sqlite3.connect(SQLITE_DB_FILE) as conn:
+            logger.sql('INSERT INTO Referral_user (user_id, ref_id) VALUES (%d, %d)', user_id, ref_id)
+            conn.execute('BEGIN')
+            conn.execute('PRAGMA foreign_keys=ON')
+            conn.execute('INSERT INTO Referral_user (user_id, ref_id) VALUES (?, ?)', (user_id, ref_id))
+            conn.execute('COMMIT')
+            return True
+    except sqlite3.Error:
+        logger.info('INSERT INTO Referral_user (user_id, ref_id) VALUES (%d, %d)', user_id, ref_id)
+        logger.exception('Ошибка записи в БД реферала')
+        return False
