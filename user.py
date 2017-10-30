@@ -45,18 +45,23 @@ class User:
                 medal = {1: '🥇', 2: '🥈', 3: '🥉'}
                 self.put_msg('Поздравляю! Ваша ставка заняла {} место.\nВы заработали {}💰'.format(
                     medal[result['place']], result['won']))
-                if self._money >= self.max_limit:
-                    self._level_up()
-                    if self._bet > self.max_bet:
-                        self.set_bet(self.max_bet)
+                self._check_money()
             else:
                 self.put_msg('К сожалению, Ваша ставка проиграла.\nВы потеряли {}💰'.format(-result['won']))
-                if self._money <= self.low_limit / 10:
-                    self._give_credit()
-                if self._bet > self.max_bet:
-                    self.set_bet(self.max_bet)
-
+                self._check_money()
             self.put_msg(self.status_msg)
+
+    def _check_money(self):
+        if self._money >= self.max_limit:
+            self._level_up()
+        elif self._money <= self.low_limit / 10:
+            self._give_credit()
+        if self._bet > self.max_bet:
+            self.set_bet(self.max_bet)
+
+    def set_money(self, money):
+        self._money = money
+        self._check_money()
 
     @property
     def user_id(self):
