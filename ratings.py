@@ -67,12 +67,11 @@ def players_bets(user_id, sort_sum=False):
         sort_key = itemgetter('bets_cnt')
     stat = db_wrap.get_players_stat()
     sorted_stat = sorted(stat, key=sort_key, reverse=True)[:10]
-    result = ['🥇🥈🥉Медали\n\n']
+    result = ['💰Ставки\n\n']
     for row in sorted_stat:
         if sort_sum:
-            result.append('`{:<15.15}  {:>4}💰`\n'.format(strip_emoji(row['first_name']),
-                                                          row['bets_sum']))
+            result.append('`{:<15.15}  {:>5}💰`\n'.format(strip_emoji(row['first_name']),
+                                                          str_human_int(row['bets_sum'])))
         else:
-            result.append('`{:<16.16}  {:>4}`\n'.format(strip_emoji(row['first_name']),
-                                                        str_human_int(row['bets_cnt'])))
+            result.append('`{:<16.16}  {:>4}`\n'.format(strip_emoji(row['first_name']), row['bets_cnt']))
     return ''.join(result)
