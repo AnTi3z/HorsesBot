@@ -28,16 +28,23 @@ def players_wins(user_id, sort_rate=False):
             if x['bets_cnt'] >= 100:
                 return x['wins']/x['bets_cnt'], 0
             else:
-                return 0, x['wins']/x['bets_cnt']
+                return 0, x['bets_cnt']
     else:
         sort_key = itemgetter('wins')
     stat = db_wrap.get_players_stat()
     sorted_stat = sorted(stat, key=sort_key, reverse=True)[:10]
     result = ['🏆Победы\n\n']
     for row in sorted_stat:
-            percent = round(row['wins']*100/row['bets_cnt'], 1)
-            result.append('`{:<12.12} {:>3}/{:<3}({}%)`\n'.format(strip_emoji(row['first_name']),
-                                                                  row['wins'], row['bets_cnt'], percent))
+        if sort_rate:
+            if row['bets_cnt'] >= 100:
+                percent = round(row['wins']*100/row['bets_cnt'], 1)
+            else:
+                percent = '~~'
+            result.append('`{:<10.10} {:>4}% / {:>4}`\n'.format(strip_emoji(row['first_name']),
+                                                                 percent, row['bets_cnt']))
+        else:
+            result.append('`{:<11.11} {:>4} / {:>4}`\n'.format(strip_emoji(row['first_name']),
+                                                                row['wins'], row['bets_cnt']))
     return ''.join(result)
 
 
@@ -47,16 +54,23 @@ def players_prizes(user_id, sort_rate=False):
             if x['bets_cnt'] >= 100:
                 return x['prizes']/x['bets_cnt'], 0
             else:
-                return 0, x['prizes']/x['bets_cnt']
+                return 0, x['bets_cnt']
     else:
         sort_key = itemgetter('prizes')
     stat = db_wrap.get_players_stat()
     sorted_stat = sorted(stat, key=sort_key, reverse=True)[:10]
     result = ['🥇🥈🥉Медали\n\n']
     for row in sorted_stat:
-            percent = round(row['prizes'] * 100 / row['bets_cnt'], 1)
-            result.append('`{:<12.12} {:>3}/{:<3}({}%)`\n'.format(strip_emoji(row['first_name']),
-                                                                  row['prizes'], row['bets_cnt'], percent))
+        if sort_rate:
+            if row['bets_cnt'] >= 100:
+                percent = round(row['prizes']*100/row['bets_cnt'], 1)
+            else:
+                percent = '~~'
+            result.append('`{:<10.10} {:>4}% / {:>4}`\n'.format(strip_emoji(row['first_name']),
+                                                                percent, row['bets_cnt']))
+        else:
+            result.append('`{:<11.11} {:>4} / {:>4}`\n'.format(strip_emoji(row['first_name']),
+                                                               row['prizes'], row['bets_cnt']))
     return ''.join(result)
 
 
