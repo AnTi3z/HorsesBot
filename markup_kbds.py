@@ -65,10 +65,10 @@ def get_reply_markup(user_rec):
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         markup.row(types.KeyboardButton('➕ {}💰'.format(low_step)),
                    types.KeyboardButton('➕➕ {}💰'.format(hi_step)),
-                   types.KeyboardButton('Макс.({}💰)'.format(user_rec.max_bet)))
+                   types.KeyboardButton('Max {}💰'.format(user_rec.max_bet)))
         markup.row(types.KeyboardButton('➖ {}💰'.format(low_step)),
                    types.KeyboardButton('➖➖ {}💰'.format(hi_step)),
-                   types.KeyboardButton('Мин.(10💰)'))
+                   types.KeyboardButton('Min 10💰'))
         markup.row(types.KeyboardButton('⬅️Назад'), types.KeyboardButton('⬆️Наверх'))
         return markup
     elif user_rec.menu in (6, 7, 8):
@@ -146,9 +146,9 @@ def check_btn(race_user, text):
             race_user.set_bet(race_user.bet - hi_step)
         elif '➖' in text:
             race_user.set_bet(race_user.bet - low_step)
-        elif 'Мин' in text:
+        elif 'Min' in text:
             race_user.set_bet(10)
-        elif 'Макс' in text:
+        elif 'Max' in text:
             race_user.set_bet(race_user.max_bet)
         elif 'Назад' in text:
             menu_0(race_user)
