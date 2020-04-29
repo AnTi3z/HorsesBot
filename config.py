@@ -6,7 +6,8 @@ LOGS_CHANNEL = -1001136199663
 # CHANNEL_ID = -1001128050160  # Animal races group
 CHANNEL_ID = -1001055052315  #testing group
 TRACKS_NUM = 8
-RACE_LEN = 16
+RACE_LEN = 32
+RACE_WIDTH = 16
 # SQLITE_DB_FILE = '/var/db/anti3z/races.sqlite'  # working DB
 SQLITE_DB_FILE = '/var/db/anti3z/races.test' # testing db
 

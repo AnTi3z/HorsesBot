@@ -53,7 +53,7 @@ def on_user_joins(msg):
 
 @bot.message_handler(commands=['start'])
 def on_start_msg(msg):
-    if check_user(msg.from_user.id):
+    if check_user(msg.from_user):
         ref = msg.text.split()[1] if len(msg.text.split()) > 1 else None
         if ref:
             try:
